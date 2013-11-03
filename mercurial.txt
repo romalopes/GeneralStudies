@@ -1,0 +1,18 @@
+Mercurial 
+================
+
+comandos básicos: 
+•	hg clone endereço
+•	hg update
+•	hg add *
+•	hg commit -m “Texto”
+•	hg push e pull
+
+No .hg/hgrc incluir:
+[ui]
+username = romalopes
+verbose = true
+
+
+Ordem de ações
+Clone -> pull -> update -> commit -> push

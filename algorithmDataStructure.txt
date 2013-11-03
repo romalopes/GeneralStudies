@@ -1,0 +1,241 @@
+- 
+- Como funciona o processo de uma chamada HTTP no servidor.
+
+- Problems
+		n control works in the TCP protocol
+- Diferenças
+	mutex and a semaphore
+	Thread x Process
+	Cookies in Http
+	Deadlock
+		It is the situation where two or more actions is running, but waiting each other to finish.  In this case, the process will never end because both are locked in this dead-lock.
+- Sugestões 
+	- inserir leilão.
+	- Social thing
+	- Sugestões baseadas em geolocalização: adequado para o aplicativo de smartphone, sugerir livros baseado na localização do usuário, 
+		ex: um Lonely Planet do local onde a pessoa está, ou um livro de história sobre aquele local...
+	- Sugestões baseadas nos seus amigos: não sei se a Amazon tem uma rede social própria, mas poderia-se fazer uma integração com,
+		ex. Facebook, para sugestão de livros e produtos em função daquilo que seus amigos estão comprando. 
+	- Trazer toda a loja para o Brasil! Hoje, a Amazon Brasil só tem livros para o Kindle, mas acho que seria um bom concorrente para Submarino, Americanas etc., dada a força que eles têm...
+- Algoritmos
+	Interpolação
+		Linear
+		Spline
+- Busca (cega)
+	Depth-first Search	
+		Recursively
+	Breadth-First Search (BFS)
+		Uses a Queue FIFO
+	Dijsktra
+	- Menor caminho
+	
+- Método de ordenação
+	BUBBLE
+		Um loop eterno.  Vai trocando até acaber.
+		Funciona como uma bolha
+		Ordem N2
+	INSERTION
+		for dentro de for.  No segundo for, parte do elemento definido no for anterior e vai voltando até o início tentando trocar.
+		N2.
+		//Algorithm
+		for(j = 1; j < length; j++) // Note!
+		{
+			keyelement = array[j];
+			for (i = j - 1; (i >= 0) && (array[i] < keyelement); i--)
+			{
+				array[i+1] = array[i];
+			}
+			array[i+1] = keyelement;
+		}
+
+	SELECTION
+		for dentro de for, em cada passada, escolhe o menor e troca no final do loop
+	
+		//Algorithm
+        for (i= length - 1; i > 0; i--)
+        {
+           firstelement = 0;
+           for (j=1; j<=i; j++)
+           {
+                 if (array[j] < array[firstelement])
+                 firstelement = j;
+           }
+           temp = array[firstelement];
+           array[firstelement] = array[i];
+           array[i] = temp;
+		}
+	SHELL
+		Generaliza o insert sort. Permite que itemns longe sejam trocado.
+		Começa com ordenamentos entre elementos em distancia = N/2 .
+		Enquanto tiver troca continua.  
+		Depois faz o mesmo para o distancia = distancia/2.
+		Repete até distancia < 1;
+			//Algorithm
+			d = length;
+			flag = 1;
+			while ( flag || (d > 1))
+			{
+				flag = 0;
+				d = (d + 1)/2;
+				for (i =0; i < (length - d); i++)
+				{
+					if (array[i + d] > array[i])
+					{
+						tmp = array[i+d];
+						array[i + d] = array[i];
+						array[i] = tmp;
+						flag = 1;
+					}
+				}
+			}
+	MERGE - NlogN
+			Algorithm of Divide and conquer.  Lista dividida em 2, depois essa é dividida em dois.
+		Faz o mesmo para a direita e pra esquerda.  Depois faz o merge.
+		No merge criar um helper com os valores do vetor e tem-se low, middle e high.  Percorre-se enquanto i<=middle e j<=high.
+		Se o valor o i < valor do helper[j], copia v[i] e i++, senão v[j] e j++.
+		Copia o resto do do helper para o v
+		 private void mergesort(int low, int high) {
+			// Check if low is smaller then high, if not then the array is sorted
+			if (low < high) {
+			  // Get the index of the element which is in the middle
+			  int middle = low + (high - low) / 2;
+			  // Sort the left side of the array
+			  mergesort(low, middle);
+			  // Sort the right side of the array
+			  mergesort(middle + 1, high);
+			  // Combine them both
+			  merge(low, middle, high);
+			}
+		  }
+
+	   private void merge(int low, int middle, int high) {
+
+			// Copy both parts into the helper array
+			for (int i = low; i <= high; i++) {
+			  helper[i] = numbers[i];
+			}
+
+			int i = low;
+			int j = middle + 1;
+			int k = low;
+			// Copy the smallest values from either the left or the right side back
+			// to the original array
+			while (i <= middle && j <= high) {
+			  if (helper[i] <= helper[j]) {
+				numbers[k] = helper[i];
+				i++;
+			  } else {
+				numbers[k] = helper[j];
+				j++;
+			  }
+			  k++;
+			}
+			// Copy the rest of the left side of the array into the target array
+			while (i <= middle) {
+			  numbers[k] = helper[i];
+			  k++;
+			  i++;
+			}
+
+	  }
+	QUICK SORT
+		http://www.youtube.com/watch?v=gu7x-jgzuOU
+		Método de dividir e conquistar.  Escolhe o pivo e ordena de acordo com ele.
+		escolhe um pivot, no N/2. 
+		Depois divide em duas listas.  E joga os maiores a direita do pivo e os menores a esquerda através das trocas sucessivas.
+		i=low, j=high. Faz o mesmo à direita e a esquerda.
+			  private void quicksort(int low, int high) {
+				int i = low, j = high;
+				// Get the pivot element from the middle of the list
+				int pivot = numbers[low + (high-low)/2];
+
+				// Divide into two lists
+				while (i <= j) {
+				  // If the current value from the left list is smaller then the pivot
+				  // element then get the next element from the left list
+				  while (numbers[i] < pivot) {
+					i++;
+				  }
+				  // If the current value from the right list is larger then the pivot
+				  // element then get the next element from the right list
+				  while (numbers[j] > pivot) {
+					j--;
+				  }
+
+				  // If we have found a values in the left list which is larger then
+				  // the pivot element and if we have found a value in the right list
+				  // which is smaller then the pivot element then we exchange the
+				  // values.
+				  // As we are done we can increase i and j
+				  if (i <= j) {
+					exchange(i, j);
+					i++;
+					j--;
+				  }
+				}
+				// Recursion
+				if (low < j)
+				  quicksort(low, j);
+				if (i < high)
+				  quicksort(i, high);
+			  }
+	HEAP (nLogn) com pior = caso médio
+			Cria-se uma arvore heap na ordem da lista que vira uma árvore balanceada.
+			Ordena: Troca os valores das sub-arvores com os elementos acima, caso o valor seja maior recursivamente até chegar à raiz.
+			Envia esse valor pro vetor.  Como a raiz ficará vazia, pegue qualquer elemento folha e jogue pra raíz.
+			A ideia é dos menores valores irem sendo jogados para a raiz.
+			http://sciencetechpedia.blogspot.com.au/2012/11/heap-sort-using-java.html
+		
+
+- Hash Table
+	Combinam uma tabela a uma função.  Particiona o conjunto de dados a fim de facilitar a busca.
+	Aloca nos buckets
+	Vetor de vetores dinâmicos.  Função matemática elaborada, ex: F(x) = x%10
+	Dispersão quando um buckets fica mais cheio.  16 bytes MD5, SHA-1
+	
+- Grafo
+	Grafo G consiste de um conjunto finito de elementos chamado vértice e um conjunto de pares não ordenados de vértices chamado arestas.
+- algoritmo de bellman-ford	
+- Arvore
+	Binária
+		Raiz tem até dois filhos.
+	B
+		Raiz tem de 2 até N+1 filhos.
+		Nós interno tem [N/2]
+			Filhs [N/2]-1, N-1
+		Folhas sempre no mesmo nível
+		Ao remover
+			Redistribuição	
+				Se os irmãos tiverem mais que o mínimo
+			Concatenação
+				Se os irmãos tiverem o mínimo
+			Ao remover o não folha, vai jogando pra baixo até virar folha.
+	Arvore Balanceada AVL
+		Se para cada nós as sub-arvores a direita ou esquerda tiverem a mesma altura ou de 1.
+		Fator de balanceamento(-1, 0 ou 1)
+		Se fator + rotação à esquerda
+		Se fator - rotação à direita
+	Arvore T
+		Baseada na AVL sendo binária e auto-balanceada.
+		Da B por ter estrutura de índice.
+		Balenaceamento como na AVL, mas com menos frequencia pq dados se movimento no nó.
+	Red-Black Tree
+		Tipo especial de arvore binária.  
+		O nó raíz é negro.
+		Um nó vermelho só pode ter filhos negros.  Nós inserido é sempre vermelho.
+		Todos os caminho a partir da raíz tem o mesmo número de nós pretos.
+	Splay tree
+		Itens mais acessados são movidos pra cima.
+- Coloração de gráfico (coloring algorithm)
+	Para cada vértice, percorrer os seus vizinhos e colorí-los.
+	Escolher o nó com maior número de ligações.
+- Minimax
+	Minimax for next move
+	Assume o oponente força vc a ir no pior caminho. 
+	Maximizo a minha jogada e minimizo a adversário
+- Alfta-Beta
+	Começa como o MinMax. Não expande a nós irrelevantes, pois faz a poda.
+	Na recursão pergunta se tem algum antecessor com valor "ctrário" maior ou menor.
+	Ex, se eu tive no MIN, pergunta se tem algum ancestral MAX maior que o elemento?
+	Se tiver no MAX, existe algum ancestral MIN menor que o elemento?
+

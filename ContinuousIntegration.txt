@@ -1,0 +1,212 @@
+- Jenkis
+	Application that monitors executions of repeated jobs, such as building a software project or jobs run by cron.
+	It is a continuous integration system, make it easier for developers to integrate changes to the project.
+	- Install
+		- Just install the war, jnlp(web start) or a proprietary package.
+	- run
+		- java -jar jenkins.war e rodar localhost:8080
+		- the jnlp
+		- the proprietary
+		- as a service
+	- Creating a project
+		
+- Cucumber  
+	- Acceptance test
+	- Uses Feature, Scenario -> Given(the action)/When(The subject is) /Then(What is got)
+	
+- Selenium 
+	- Automate functional test
+	- It records and playback or performs automate acceptance test programatically
+	- Modules
+		- Selenium IDE
+			- Records and play a sequence of actions.  it is a firefox plugin
+			- You can save in an language: options->options->xxx
+			- good to have firebug
+		- Selenium RC (Remote Control)			
+			Command line.
+			http://docs.seleniumhq.org/selenium-rc.png
+			java -jar selenium-server-standalone-2.35.0.jar -port 4567
+		- Selenium Grid
+			paralled Test playback in multiple machines
+		
+	- Comes with drive for Firefox, safari and others.  It is possible to download drive for Chrome.
+		System.setProperties("webdriver.chrome.driver","c:\\workspace\\tools\\selenium\\chromedriver.exe");
+	- Execution (http://thinkinginsoftware.blogspot.com.au/2010/11/acceptance-test-driven-development-atdd.html)	
+		WebDriver driver = new FirefoxDriver();
+		String url = EnvironmentProperties.getBaseUrl() + "/";
+        driver.get(url);
+		WebElement loginForm = driver.findElement(By.name("loginForm"));
+        WebElement userName = loginForm.findElement(By.name("j_username"));
+        userName.sendKeys(EnvironmentProperties.getAdminUserName());
+        WebElement password = loginForm.findElement(By.name("j_password"));
+        password.sendKeys(EnvironmentProperties.getAdminUserPassword());
+        loginForm.submit();
+        url = EnvironmentProperties.getBaseUrl() + "/client/list";
+        driver.get(url);
+		 assertThat(driver.findElement(By.className("form-navigation")), is(notNullValue()));
+     
+- Enterprise Integration Patterns
+	- 
+			
+			
+		
+		
+- Sonarqube (http://www.sonarqube.org/)
+	It is an open platform to manage code quality and continuous inspection that covers 7 axes of code quality;
+		http://www.sonarqube.org/wp-content/themes/sonar/images/7axes.png
+	- Sonarqube plaftorm has 3 components
+		http://docs.codehaus.org/download/attachments/113541598/technical-architecture.png?version=1&modificationDate=1375264406542&effects=drop-shadow
+		- Database
+		- WebServer component that has the browse to show the snapshots and sonaqube intances.
+		- Client/Analysers to analyse the projects
+	- Installing
+		- Creating the database on MySQL
+			https://github.com/SonarSource/sonar-examples/blob/master/scripts/database/mysql/create_database.sql
+		- Install Web Server
+			http://sonar.codehaus.org/downloads/
+			- In <install_directory>/conf/sonar.properties
+				sonar.jdbc.username:  sonarqube
+				sonar.jdbc.password:  mypassword
+				sonar.jdbc.url:       jdbc:postgresql://localhost/sonarqube
+			- Take care about the names of username and database, because on migth be "sonarqube" and other "sonar", be sure to make then the same.
+			- run: localhost:9000
+		- Install a analyser - 
+			- Multiple possible
+				- SonarQube runner, Maven, Ant, Gradle, Jenkis plugin, etc.
+			- SonarQube runner - http://docs.codehaus.org/display/SONAR/Analyzing+with+SonarQube+Runner
+				 - inside the project, create a configuration file: sonar-project.properties
+					# required metadata
+					sonar.projectKey=my:project
+					sonar.projectName=My project
+					sonar.projectVersion=1.0
+					# optional description
+					sonar.projectDescription=Fake description   #<---- should be from src, before the first package.
+					# path to source directories (required)
+					sonar.sources=srcDir1,srcDir2
+					# The value of the property must be the key of the language.
+					sonar.language=cobol
+					# Encoding of the source code
+					sonar.sourceEncoding=UTF-8
+					# Additional parameters
+					sonar.my.property=value
+				- run: sonar-runner
+					It will go inside all packages, analyses that informations about metrics and save in the BD.
+
+- Nexus 
+	Repository manager for Maven
+	- Two purposes
+		- Proxy between company's repository and public maven
+		- A place for company to save its own artefacts
+		
+- Maven
+	Features and goals:
+		- Simplify the build process, sharing JARs, publishing informations in a easy way.
+		- Deploy a system
+		- Manage Documentation, dependencies, releases, distribution, report
+		- Maven works on top of ANT
+			Ant needs you to write the logic and provide de data
+			Maven needs you to provide the data and know how to do most things.
+		- Maven has a local repository and well named jars, docs, etc.
+			Provide a single location for downloads which versions are created automatically
+	- POM (Project Object Model)
+		
+	- Create a Project
+		Simple way:
+			 - mvn archetype:generate
+			 - There are over 850 archetypes.  Use the 314(
+			 -archetype-quickstart), sugested but maven
+			 - Version of maven-archetype-quickstart: Use the sugested(1.1), number 6.
+			 - groupId: The groupId that will be inside the pom.xml. I use: br.com.romalopes.meven2Test
+			 - artifactId: mavenToGradle.  The project will be created inside this directory.
+			 - Version: Accept the sugested.
+			 - Value for property papckage: The package that will be create inside the structure:br.com.romalopes.meven2Test
+			 - Confirm
+		
+		- A more sofisticated way
+			- mvn archetype:generate -DgroupId=br.com.romalopes.maven2Test -DartifactId=maven-test -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+				It creates a structure like that:
+				- my-app
+					|-- pom.xml
+					`-- src
+						|-- main
+						|   `-- java.
+						|       `-- com.
+						|           `-- mycompany- 
+						|               `-- app
+						|                   `-- App.java
+						|-- resources
+							-- META-INF
+							-- application.properties   -->  InputStream is = getClass().getResourceAsStream( "/test.properties" );
+						`-- test
+							`-- java
+								`-- com
+									`-- mycompany
+										`-- app
+											`-- AppTest.java
+	- Phases to buil a project
+		Validate
+		generate-sources
+		process-sources
+		generate-resources
+		process-resources
+		compile
+		mvn package
+		integration-test
+		verify
+		install - install into the local repository
+		deploy - copies the final package to the remote repository
+		- others
+			clean
+			test
+			dependency:copy-dependencies 
+			mvn site - generate a site for project documentation
+			can call
+				mvn clean dependency:copy-dependencies package
+		
+	- maven to Eclipse
+		Simple java
+			mvn eclipse:eclipse
+		Dynamic Web Project
+			mvn eclipse:eclipse -Dwtpversion=1.5
+			In Eclipse: 
+				Properties->Modify Project->Change Facet	
+	- plugins
+		To customize the build for a Maven Project
+			
+	- Example
+		<project xmlns="http://maven.apache.org/POM/4.0.0"
+		  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+							  http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		  <modelVersion>4.0.0</modelVersion>
+
+		  <groupId>com.mycompany.app</groupId>
+		  <artifactId>my-app</artifactId>
+		  <version>1.0-SNAPSHOT</version>
+		  <packaging>jar</packaging>
+
+		  <name>Maven Quick Start Archetype</name>
+		  <url>http://maven.apache.org</url>
+
+		  <dependencies>
+			<dependency>
+			  <groupId>junit</groupId>
+			  <artifactId>junit</artifactId>
+			  <version>3.8.1</version>
+			  <scope>test</scope>
+			</dependency>
+		  </dependencies>
+
+		  <build>
+			<resources>
+			  <resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			  </resource>
+			</resources>
+		  </build>
+
+		  <properties>
+			<my.filter.value>hello</my.filter.value>
+		  </properties>
+		</project>	

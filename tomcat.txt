@@ -1,0 +1,218 @@
+- Tomcat
+	http://www.ramkitech.com/
+	http://tomcat.apache.org/tomcat-6.0-doc/realm-howto.html
+	http://my.opera.com/shibutani/blog/show.dml/1779612
+	http://www.scribd.com/doc/7571690/Java-Security-Como-Usar-JAAS-Com-Tomcat-6
+	http://www.mhavila.com.br/topicos/java/tomcat.html#t10
+
+	- With o Apache
+		http://www.ramkitech.com/2012/10/tomcat-clustering-series-simple-load.html
+		http://www.ntu.edu.sg/home/ehchua/programming/howto/ApachePlusTomcat_HowTo.html
+		http://www.ntu.edu.sg/home/ehchua/programming/howto/images/ApachePlusTomcat.png
+		http://www.ntu.edu.sg/home/ehchua/programming/howto/images/HTTP_ClientServerSystem.png
+		- Why integrate Tomcat with Apache?
+			- Clustering and loadbalance: With Apache you can use multiple tomcat instances or divide Tomcat instances into various namespaces
+			- Security: 
+			- Speed for static content
+		- Context Containers
+			Context containers are web applications running inside the webapps.  A web site can have one or more contexts.
+			
+		- To run
+			- Apache needs to load a adpter module which uses  Apache JServ Protocol (AJP) to comunicate with Tomcat via another TCP port (8009)
+			- When Apache receives an HTTP request:
+				- Apache checkes if the request belongs to Apache, Tomcat, PHP, etc
+				- If Tomcat, Adapter takes the request and forwards it to Tomcat.
+		- Steps
+			- Install Apache HTTP Server
+			- Install Tomcat
+			- tomcat.apache.org (-> Download -> Tomcat Connectors -> JK 1.2 -> Binary Releases -> windows ->  tomcat-connectors-1.2.37-windows-i386-httpd-2.4.x.zip .
+			- rename it to mod_jk and copy to %APACHE%/modules
+			- create a file mod_jk.conf in %APACHE%/conf
+				# Load mod_jk module
+				# Update this path to match your modules location
+				LoadModule jk_module modules/mod_jk.so
+
+				# Where to find workers.properties
+				# Update this path to match your conf directory location
+				JkWorkersFile C:/workspace/linguagens/java/servers/apache-tomcat-7.0.16/conf/workers.properties
+
+				# Where to put jk logs
+				# Update this path to match your logs directory location
+				JkLogFile C:/workspace/linguagens/java/servers/apache-tomcat-7.0.16/logs/mod_jk.log
+
+				# Set the jk log level [debug/error/info]
+				JkLogLevel info
+
+				# Select the log format
+				JkLogStampFormat "[%a %b %d %H:%M:%S %Y]"
+
+				# JkOptions indicate to send SSL KEY SIZE,
+				JkOptions +ForwardKeySize +ForwardURICompat -ForwardDirectories
+
+				# JkRequestLogFormat set the request format
+				JkRequestLogFormat "%w %V %T"
+
+				# Send everything for context /ws to worker ajp13
+				JkMount /ws ajp13
+				JkMount /ws/* ajp13 
+
+				# Send everything for context /examples to worker ajp13
+				JkMount /examples ajp13
+				JkMount /examples/* ajp13
+			- Include this file in httpd.conf
+				include C:/workspace/linguagens/java/servers/apache-tomcat-7.0.16/conf/mod_jk.conf
+			- Create the C:/workspace/linguagens/java/servers/apache-tomcat-7.0.16/conf/workers.properties
+				# Define 1 real worker named ajp13
+				worker.list=ajp13
+
+				# Set properties for worker named ajp13 to use ajp13 protocol,
+				# and run on port 8009
+				worker.ajp13.type=ajp13
+				worker.ajp13.host=localhost
+				worker.ajp13.port=8009
+				worker.ajp13.lbfactor=50
+				worker.ajp13.cachesize=10
+				worker.ajp13.cache_timeout=600
+				worker.ajp13.socket_keepalive=1
+				worker.ajp13.socket_timeout=300
+			- Configure Tomcat
+				conf/server.xml to start the AJP1.3 service on TCP port 8009
+	
+	/TOMCAT_HOME/conf/server.xml
+
+		ServletContext – O container da aplicação web.  Somente um por aplicação.
+			<Context path="/projeto" docBase="projeto" debug="0" reloadable="true" /> 
+			ex: http://localhost:8080/onjava/login.jsp 
+
+			<global-results>
+			<result name="naoLogado">/login.jsp</result>
+			</global-results>
+
+	Caminhos
+		/projeto
+		/projeto/WEB-INF
+		web.xml – configurações do projeto web.
+		/projeto/WEB-INF/classes
+		/projeto/WEB-INF/lib
+		TagLib
+			<taglib>
+				<taglib-uri>/onjava</taglib-uri>
+				<taglib-location>/WEB-INF/lib/taglib.tld</taglib-location>
+			</taglib> 
+
+			<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+			<%@taglib tagdir="/WEB-INF/tags" prefix="caelum" %>
+
+			<caelum:teste/>
+
+	DataSource JNDI
+		http://wiki.locaweb.com.br/pt-br/Criando_uma_datasource_JNDI
+
+	Pool de Conexões 
+		No diretório META-INF da aplicação, crie um arquivo “context.xml” com o seguinte conteúdo:
+		<?xml version=”1.0? encoding=”UTF-8??>
+		<Context auth=”Container”>
+			<Resource name=”jdbc/bd_teste”	type=”javax.sql.DataSource”
+			url=”jdbc:mckoi://localhost:59999/”	driverClassName=”com.mckoi.JDBCDriver”
+			username=”admin”	password=”123456?	maxActive=”100?	maxIdle=”20?/>
+		</Context>
+		Registrando o pool no aplicativo…
+		No arquivo “web.xml” da aplicação, insira as linhas abaixo…
+			<resource-ref>
+				<res-ref-name>jdbc/bd_teste</res-ref-name>
+				<res-type>javax.sql.DataSource</res-type>
+				<res-auth>Container</res-auth>
+			</resource-ref>
+	Chamada no Service Locator
+		import java.sql.Connection;
+		import javax.naming.InitialContext;
+		import javax.sql.DataSource;
+		public class ServiceLocator {
+			public static Connection getConexao() throws Exception {
+				Connection con = null;
+				// Obtém a raiz da hierarquia de nomes
+				InitialContext contexto = new InitialContext();
+				// Obtém a origem dos dados
+				DataSource ds = (DataSource)contexto.lookup(“java:comp/env/ jdbc/bd_teste”);
+				// Obtém uma conexão
+				con = ds.getConnection();
+				// Retorna a conexão
+				return con;
+			}
+		}
+	SSL
+		$CATALINA_HOME/conf/server.xml
+		<Connector protocol="org.apache.coyote.http11.Http11Protocol"
+				   port="8443" .../>
+		 
+		<Listener className="org.apache.catalina.core.AprLifecycleListener"
+				  SSLEngine="on" SSLRandomSeed="builtin" />
+		<Connector 
+				   port="8443" maxThreads="200"
+				   scheme="https" secure="true" SSLEnabled="true"
+				   keystoreFile="${user.home}/.keystore" keystorePass="changeit"
+				   clientAuth="false" sslProtocol="TLS"/>
+		-->
+		Install a Certificate from a Certificate Authority like verisign.com,
+	- Configuring connectors
+		Connectors are link to outside world to receive requests, pass them to the correct web app and send back the results.
+		Each connector element represents a port that Tomcat will listen or to link tomcat to other web technologies(Eg: Apache Web Service).
+		E.g:
+			<Server>
+				<Service name="Catalina">
+					<Connector port="8443"/>
+					<Engine>
+					  <Host name="yourhostname">
+						<Context path="/webapp1"/>
+					  </Host>
+					</Engine>
+				</Service>
+			</Server>
+		Two Types
+			Http: 
+				Attributes can be modified to specify exaclty how it works
+				Can be used as parte of load balancing scheme
+			AJP:
+				Works like HTTP connectors, but using a AJP(Apache JServer Protocol) Protocol(binary and optimized version of HTTP) mostly used for Tomcat-Apache comunication.
+				Used in mod_jk
+	- Tuning (performance)
+		- Disable modules you don't need
+		- Tuning the JVM
+			- Chose the right JVM
+			- Effective Memory Management
+				-Configure memory reallocation Xms.  Set to Xms = Xmx eliminates the need of JVM to resize the heap memory.
+				Ex: -Xmx1024m(Maxsize) –Xms1024m(HeapSize) -XX:MaxNewSize=384m(NewSize) -XX:MaxPermSize=128m(Size to load class)
+					- MaxNewSize is 1/3 of heap size
+					- Consuption memory = 1G Heap + 128mb perm=1.128Gb + 500Mb(JVM consume)
+			- Selecting garbage collector (eliminate excessive garbage collector)
+				GC can stress the server. Start jvm with a higher maximum heap memory  -Xmx
+		- Configuring connectors - http://tomcat.apache.org/tomcat-7.0-doc/config/http.html
+			- Setting the best thread pool. 
+				<Connector port="8080" 
+					address="localhost" --> which address for a specific port.
+					maxThreads="250" --> 50 to 500 is good.  100 to 200 is usually best
+					maxHttpHeaderSize="8192" --> Max Size of a Header of a Request of Response HTTP
+					emptySessionPath="true" 
+					protocol="HTTP/1.1" -->User BIO.  APR is more faster about 10% than BIO. But BIO is more stable.
+					enableLookups="false" -->Enable system return DNS name not a IP address.  Degrade performance because Tomcat looks up DNS.
+					redirectPort="8443" 
+					acceptCount="100" --> It specifies server request queue length.  If overflow, client get a error. Prevent system overload
+					compression="off --> Used to REST API requests	
+					connectionTimeout="20000" --> 20 seconds
+					maxConnections=”8192"  --> this amount of sockets at same time.
+					maxKeepAliveRequests=”1" --> Used to REST API requests. Time that this Connector will wait for another HTTP request before closing the connection
+					disableUploadTimeout="true" />
+
+			Value too small: Tomcat's threads will not handle all requests and will not use all server hardware.
+			Value too high: Increase tomcat startup time 
+		- Compression
+			Initially set to off. Use compressableMimeTypes.  Some application perform better
+		- Use HTTP instead HTTPS
+		- Web Servers For Static Content
+			Put static content dedicated to web servers such as Apache.
+		- 
+				
+			
+		
+	- Differences between 6 and 7
+		http://www.tekhnologia.com/2012/07/why-tomcat-7-upgarde-and-tomcat-7-vs.html

@@ -1,0 +1,183 @@
+Jquery
+	Syntax and First Example
+	$(selector).action()
+
+	$(document).ready(function(){
+	  $("p").click(function(){
+		$(this).hide();
+	  });
+	});
+
+	Import:
+	<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js">
+	</head>
+
+	Selectors:
+
+	$(this).css("background-color","#cccccc"); - hides the current element.
+	$("p").hide() - hides all <p> elements.
+	$(".test").hide() - hides all elements with class="test".
+	$("#test").hide() - hides the element with id="test".
+	$("p.intro")	Selects all <p> elements with class="intro"
+	$("tr:even")	Selects all even <tr> elements
+
+	Events: 
+	Mouse Events	Keyboard Events		Form Events		Document/Window Events
+	click			keypress			submit			load
+	dblclick		keydown				change			resize
+	mouseenter		keyup				focus			scroll
+	mouseleave	 	blur				unload
+
+	Efects:
+	animate()	Runs a custom animation on the selected elements
+	clearQueue()	Removes all remaining queued functions from the selected elements
+	delay()	Sets a delay for all queued functions on the selected elements
+	dequeue()	Removes the next function from the queue, and then executes the function
+	fadeIn()	Fades in the selected elements
+	fadeOut()	Fades out the selected elements
+	fadeTo()	Fades in/out the selected elements to a given opacity
+	fadeToggle()	Toggles between the fadeIn() and fadeOut() methods
+	finish()	Stops, removes and completes all queued animations for the selected elements
+	hide()	Hides the selected elements
+	queue()	Shows the queued functions on the selected elements
+	show()	Shows the selected elements
+	slideDown()	Slides-down (shows) the selected elements
+	slideToggle()	Toggles between the slideUp() and slideDown() methods
+	slideUp()	Slides-up (hides) the selected elements
+	stop()	Stops the currently running animation for the selected elements
+	toggle()
+
+	Ex:
+		<script> 
+		$(document).ready(function(){
+		  $("#start").click(function(){
+			$("div").animate({height:300},3000);    $("div").animate({width:300},3000);
+		  });
+		});
+		</script> </head>  <body>
+		<p> <button id="start">Start Animation</button>
+		<button id="complete">Finish Current Animation</button>
+		</p>
+		<div style="background:#98bf21;height:100px;width:100px">
+		</div>
+		</body>
+
+		<script>
+		$(document).ready(function(){
+		  $("#button1").click(function(){
+			var div = $("#div1");
+			div.animate({height:300},"slow"); div.animate({width:300},"slow"); div.animate({height:100},"slow"); div.animate({width:100},"slow");
+			$("span").text(div.queue().length);   
+			$("#div1").fadeToggle();    $("#div2").fadeToggle("slow");      $("#div3").fadeToggle(3000);
+		  });
+		  $("#button2").click(function(){   $("p").fadeTo(1000,0.4); });
+		  $("#button3").click(function(){   $("#div1").finish(); });
+		  $("#button4").click(function(){   $("#div1").stop(); });
+		});
+		</script>
+		</head>
+		<body>
+		<p>The queue length is: <span></span></p>
+		<button id="button1">fade in/out</button> <button id="button2">fade to boxes</button> 
+		<button id="button3">Complete</button> <button id="button4">Stop</button>
+		<br><br> <div id="div1" style="width:80px;height:80px;background-color:red;"></div>
+		<br>  <div id="div2" style="width:80px;height:80px;background-color:green;"></div>
+		<br> <div id="div3" style="width:80px;height:80px;background-color:blue;"></div>
+		</body>
+
+	HTML content:
+		text(), html(), and val()
+		<script>
+		$(document).ready(function(){
+		  $("#button1").click(function(){ alert("Value: " + $("#testVal").val());  $("#testVal").val("Dolly Duck"); });
+		  $("#button2").click(function(){  $("#testAttrb").attr( "width", "200px");   alert("Width of div: " + $("#testAttrb").width());   $("#testAttrb").width("500px") });
+		  $("#button3").click(function(){ alert("Text: " + $("#testTextHtml").text());    $("#testTextHtml").text("Hello world!"); $("#testTextHtml").after("Some text after");});  
+		  $("#button4").click(function(){ alert("HTML: " + $("#testTextHtml").html());  $("#testTextHtml").html("<b>Hello world!</b>"); });
+		});
+		</script> </head> <body>
+		<p>Name: <input type="text" id="testVal" value="Mickey Mouse"></p>
+		<div id="testAttrb" style="height:100px;width:300px;padding:10px;margin:3px;border:1px solid blue;background-color:lightblue;"></div><br>
+		<p id="testTextHtml">This is some <b>bold</b> text in a paragraph.</p>
+		<button id="button1">Val</button> <button id="button2">Attr</button> <button id="button3">Text</button> <button id="button4">Html</button>
+		</body>
+
+	HTML Remove
+		<script>
+		$(document).ready(function(){
+		  $("button").click(function(){
+			$("p").remove(".italic"); $("#div1").empty();
+		  });
+		});
+		</script> </head> <body>
+		<div id="div1" style="height:100px;width:300px;border:1px solid black;background-color:yellow;">This is some text in the div. </div>
+		<p class="italic"><i>This is another paragraph in the div.</i></p>
+		<button>Remove </button>
+		</body>
+
+	Manipulating CSS
+		addClass() - Adds one or more classes to the selected elements
+			$("#div1").addClass("important blue");
+			.important {
+				font-weight:bold;	font-size:xx-large;
+			}
+			.blue { color:blue; }
+			<div id="div1">This is some important text!</div>
+			
+		removeClass() - Removes one or more classes from the selected elements
+			$("h1,h2,p").removeClass("blue");
+		toggleClass() - Toggles between adding/removing classes from the selected elements
+			$("h1,h2,p").toggleClass("blue");
+		css() - Sets or returns the style attribute
+		  $("button").click(function(){
+			alert("Background color = " + $("p").css("background-color"));
+			$("p").css("background-color","yellow");
+		  });
+		  
+		  <p style="background-color:#ff0000">This is a paragraph.</p>
+
+	Dimentions
+		var txt="";
+		txt+="Width of div: " + $("#div1").width() + "</br>";  method sets or returns the width of an element (includes NO padding, border, or margin).
+		txt+="Height of div: " + $("#div1").height() + "</br>"; innerHeight() - 
+		txt+="Inner width of div: " + $("#div1").innerWidth() + "</br>";  method returns the width of an element (includes padding).
+		txt+="Inner height of div: " + $("#div1").innerHeight() + "</br>";
+		txt+="Outer width: " + $("#div1").outerWidth() + "</br>"; method returns the width of an element (includes padding and border).
+		txt+="Outer height: " + $("#div1").outerHeight();
+		$("#div1").html(txt);
+
+	Transversing Ancestors / Descendant / Sideways
+		$("span").parent();
+		$("span").parents();
+		$("span").parents("ul");
+		$("span").parentsUntil("div");
+		$("div").children();
+		$("h2").siblings();
+		 $("h2").siblings("p"); //sibilings of h2 which are p
+		$("h2").next(); //Next sibiling // prev()
+		$("h2").nextAll(); //All next sibilings // prevAll()
+		 $("h2").nextUntil("h6"); //next sibilings of h2 until h6 //prevUntil()
+		$("div p").first(); //first p inside div
+		$("p").not(".intro").css("background-color","yellow"); // Every p expect those which are class .intro.  Opposite to filter and eq(index)
+		
+	AJAX
+		Load
+			$("#div1").load("demo_test.txt");
+		Get
+			$("button").click(function(){
+				$.get("demo_test.asp",function(data,status){
+					alert("Data: " + data + "\nStatus: " + status);
+				});
+			});
+		Post
+			$("button").click(function(){
+				$.post("demo_test_post.asp",
+				{
+					name:"Donald Duck",
+					city:"Duckburg"
+				},
+				function(data,status){
+					alert("Data: " + data + "\nStatus: " + status);
+				});
+			});
+

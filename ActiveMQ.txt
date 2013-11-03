@@ -1,0 +1,22 @@
+ActiveMQ
+============
+
+https://github.com/apache/activemq
+
+http://activemq.apache.org/version-5-getting-started.html#GettingStarted-WindowsSourceInstallation
+	mvn clean install OR mvn clean install -Dmaven.test.skip=true
+
+- ActiveMQ
+	- Begin to use
+		Sites:
+			git clone https://git-wip-us.apache.org/repos/asf/activemq.git
+			http://projects.apache.org/projects/activemq.html
+			http://activemq.apache.org/getting-started.html#GettingStarted-WindowsSourceInstallation
+		- To install
+		
+			mvn clean install  -Dmaven.test.skip=true
+			mvn idea:idea
+			- cd [activemq_install_dir]\assembly\target
+			- Unzip activemq....zip
+			- cd activemq...
+			bin\activemq	

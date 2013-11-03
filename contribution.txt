@@ -1,0 +1,108 @@
+Groovy - Contributing
+	General Information, Jira, etc
+		- git clone http://github.com/grails/groovy-core.git
+		http://groovy.codehaus.org/Contributing
+		http://xircles.codehaus.org/projects/groovy
+		http://blog.bloidonia.com/post/17711808015/submitting-code-to-the-groovy-language
+		https://help.github.com/articles/using-pull-requests
+	Steps:
+		- You have an account on github
+		- You have an account on Groovy’s JIRA
+		- You have git installed on your development machine
+		- You have set up your ssh keys to access github
+		- Inside github.com, click in FORK
+		- $ git clone git@github.com:timyates/groovy-core.git
+		- cd groovy-core
+		DO THE CHANGES
+		- git remote add upstream https://github.com/groovy/groovy-core.git
+		- git remote -v
+		-  git pull upstream master  //to ensure the your master is uptodate
+		- git checkout -b onearginject   //switch to a new branch
+		- git add src/test/groovy/ClosureMethodTest.groovy
+		- $ git commit -m "Added tests for new one arg inject"
+		- git push origin onearginject
+		- go to github.commit
+			- see if the branched was pulled
+			- click in Pull Request		
+	Changes to compile
+		gradle.properties, line 19
+			#org.gradle.jvmargs=-Xmx640m -XX:MaxPermSize=196m -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled
+			org.gradle.jvmargs=-Xmx640m -XX:MaxPermSize=512m -XX:+CMSClassUnloadingEnabled -XX:+CMSPermGenSweepingEnabled
+		build.gradle, line 108
+			GRADLE_OPTS="$GRADLE_OPTS \" -Xms1024m -Xmx1024"
+
+
+	Tasks
+		1 - https://jira.codehaus.org/browse/GROOVY-4847
+			Include methods round and trunc for BigDecimal class.
+			modified:   src/main/org/codehaus/groovy/runtime/DefaultGroovyMethods.java
+  			modified:   src/test/org/codehaus/groovy/runtime/DefaultGroovyMethodsTest.java
+  			steps in git:
+  				$ git remote add methodsToBigDecimal https://github.com/groovy/groovy-core.git
+  				$ git remote -v
+  				$ git pull methodsToBigDecimal master
+  				$ git checkout -b methodsToBigDecimal
+  				$ git status -v
+  				$ git commit -a -m "Added methods round and trunc to BigDecimal"
+  				$ git push origin methodsToBigDecimal
+
+  				went to https://github.com/romalopes/groovy-core
+  					clicked in Compare & pull request
+
+
+
+Gradle - Contribution
+	- git clone http://github.com/grails/groovy.git
+
+	gradle -D GRADLE_OPTS="-Xmx1024m -Xms256m -XX:MaxPermSize=512m clean build'
+	
+Spring - Contribution
+	- git clone http://github.com/grails/spring-framework.git
+	
+Spring integration
+	https://github.com/spring-projects/spring-integration
+
+Grails - Contribution
+	- Development Grails
+		http://grails.org/Developer+Documentation
+		- git clone http://github.com/grails/grails-core.git
+		gradlew install (take care with the path.  It can	t be too big).
+
+Gradle		
+	- To contribute
+		Introduction
+			clone:
+				https://github.com/romalopes/gradle
+			read the readme.rd
+			Contribute, ideas
+				http://www.gradle.org/contribute
+				http://gradle.org/development
+				- NABLE
+				http://gradle.1045684.n5.nabble.com/gradle-dev-f1436218.html
+		Ideas from Luke Adam
+			1. There are a bunch of things we can do to improve the copy/zip/tar tasks:
+				- Add some way to control the character encoding for text files.
+				- Add a better way to expand tokens in text files as they are copied.
+				- Add support for symlinks.
+				- Add a way to rename directories when they are copied (you can already do this for files).
+				- There are a few bugs that would be good to fix.
+			2. There is a more stuff we can do in reporting:
+				- Improve the build dashboard report to show more things, eg the projects in the build, test results, etc.
+				- Improve the HTML test report to show the output for a test with that test. At the moment the output is shown per class.
+			3. Add something to the JaCoCo plugin to enforce minimum coverage levels.
+			4. Add support for Webdav and/or SFTP artefact repositories.
+
+		
+		
+		Dear Guillaume.
+  My name is Anderson, I am a Brazilian software Engineer who lives in Sydney/Australia.
+  I have worked with grade for some months and would like to offer a contribution.    I have a extensive experience in java development, however I am new at open source development world and I still don't know exactly what to do and how to begin.
+
+  I downloaded the source from github and I am already working in my personal version, also I entered in http://xircles.codehaus.org/ to look at the issues to understand how it works.
+
+  I would be very happy if I can understand better the process of contribution to help the development of this magnificent language.  I would be very grateful if you helpme somehow to enter in this world passing some intruction or small tasks to do.
+
+  
+  Cheers. 
+  Anderson.
+		

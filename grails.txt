@@ -1,0 +1,695 @@
+
+- Grails
+	- Convention over Configuration
+		grails-app - top level directory for Groovy sources
+		conf - Configuration sources.
+		controllers - Web controllers - The C in MVC.
+		domain - The application domain.
+		i18n - Support for internationalization (i18n).
+		services - The service layer.
+		taglib - Tag libraries.
+		utils - Grails specific utilities.
+		views - Groovy Server Pages - The V in MVC.
+		scripts - Gant scripts.
+		src - Supporting sources
+		groovy - Other Groovy sources
+		java - Other Java sources
+		test - Unit and integration tests.
+	- Configuration
+		- grails-app/conf/BuildConfig.groovy : Used when your are running grails commands
+			grailsVersion	The version of Grails used to build the project.
+			grailsSettings	An object containing various build related settings, such as baseDir. It's of type BuildSettings.
+		- grails-app/conf/Config.groovy : Used when that application is running. It is packaged with the app.
+			grailsApplication	The GrailsApplication instance
+		- Both
+			userHome	Location of the home directory for the account that is running the Grails application.
+			grailsHome	Location of the home directory for the account that is running the Grails application.
+			appName	The application name as it appears in application.properties.
+			appVersion	The application version as it appears in application.properties.
+			For example:
+				my.tmp.dir = "${userHome}/.grails/tmp"	
+				class MyService {
+					def grailsApplication
+					def method() {
+					def recipient = grailsApplication.config.foo.bar.hello //Can be used directly in Controller or by Injection in Service.
+					}
+				}
+		- Gorm
+			- grails.gorm.failOnError.  If true throws a grails.validation.ValidationException
+			  grails.gorm.failOnError = ['com.companyname.somepackage']
+			- grails.gorm.autoFlush, to auto flush in mege, save, delete.  No need to use save(flush: true
+		- Enviroment
+			- Used in Config.groovy, DataSource.groovy and Bootstrap.groovy.
+		- DataSource
+			- grails.project.dependency.resolution = {
+				...
+				dependencies {
+					runtime 'mysql:mysql-connector-java:5.1.16'
+			  }	}
+			- dbCreate: create, create-drop, update, validate.
+			- Multiple Datasources: ex: dataSource_lookup, dataSouce_lookup2.
+			- Configuring Domain Classes
+				mapping = {
+					datasources(['lookup', 'auditing'])   or datasources(['lookup', 'DEFAULT'])   datasource 'ALL'
+		- Configurations and Dependencies
+			- build(Dependencies for the build system only), compile, runtime, test, 
+	 		  provided( Dependencies needed at development time, but not during WAR deployment)
+		- Repositories
+			- In BuildConfig.groovy. 
+			repositories {
+					mavenCentral()
+			}
+		- Depoy to a maven repository
+			- grails maven-install(install project or plugin local Maven cache) or maven-deploy(deploy project in a remote Maven repository)
+		- Grails commands
+			- Maven integration
+				grails create-pom com.mycompany
+			- General Commands
+				grails:create-controller - Calls the create-controller command
+				grails:create-domain-class - Calls the create-domain-class command
+				grails:create-integration-test - Calls the create-integration-test command
+				grails:create-pom - Creates a new Maven POM for an existing Grails project
+				grails:create-script - Calls the create-script command
+				grails:create-service - Calls the create-service command
+				grails:create-taglib - Calls the create-tag-lib command
+				grails:create-unit-test - Calls the create-unit-test command
+				grails:exec - Executes an arbitrary Grails command line script
+				grails:generate-all - Calls the generate-all command
+				grails:generate-controller - Calls the generate-controller command
+				grails:generate-views - Calls the generate-views command
+				grails:install-templates - Calls the install-templates command
+				grails:list-plugins - Calls the list-plugins command
+				grails:package - Calls the package command
+				grails:run-app - Calls the run-app command
+				For a complete, up to date list, run mvn grails:help
+	- GORM
+		- Many-to-one (composition)
+			class Face {
+				Nose nose
+			}
+			class Nose {	
+			  static belongsTo = [face:Face] // To make bidirecional relationship.  Without this line it is unidirecional
+			}
+			new Face(nose:new Nose()).save()
+			def f = Face.get(1);	f.delete() // both Face and Nose deleted
+		- one-to-one
+			class Face {
+				static hasOne = [nose:Nose]
+				 static constraints = {
+					nose unique: true // guarantee that it is one-to-one
+				}
+			}
+			class Nose { // here there is the foreign key.
+				Face face 
+			}
+		- One-to-Many - One class has many instance of another class
+			class Author {
+				List books // Keeps the books in the orders they was inserted. Can use Map, Set, etc.
+				static hasMany = [books: Book]  
+			}
+			class Book { // The default cascading behaviour is to cascade saves and updates, but not deletes unless a belongsTo is also specified:
+				static belongsTo = [author: Author] // this line makes bidirecional one-to-many otherwiswe is unidirectional 
+				String title
+			}
+		- Many-to-many -  uses a join table at the database level. The owning side takes the responsibility for persisting and is the only side that can cascade.
+			- Not supported by Scarfold
+			class Book {
+				static belongsTo = Author //on the owned side of the relationship:
+				static hasMany = [authors:Author]
+			}
+			class Author {
+				static hasMany = [books:Book]
+				String name
+			}
+		- Joint a table
+			class Person {
+				static hasMany = [nicknames: String] // Has many strings
+
+				static mapping = {
+				   hasMany joinTable: [name: 'bunch_o_nicknames', // Set the table of nicknames
+									   key: 'person_id',
+									   column: 'nickname',
+									   type: "text"]
+				}
+			}
+		- Composition in GORM
+			class Person {
+				Address homeAddress
+				Address workAddress
+				static embedded = ['homeAddress', 'workAddress'] //Everything in the same table.
+			}
+			class Address {
+				String number
+				String code
+			}
+		- Persistence
+			- Every class created in domain will be persisted. Classes not persisted are in src/groovy and src/java
+			- Uses optmistic Locking
+			def p = Person.get(1)
+			try {
+				p.save(flush: true) or p.delete(flush: true)
+			} catch (org.springframework.dao.DataIntegrityViolationException e) {
+				// deal with exception
+			}
+			try {
+				p.save(failOnError: true) // ValidationException
+			} catch (ValidationException e) {
+				// deal with exception
+			}
+			- Eager or Lazy Fetching(default) 
+				-	class Person {
+						Pet pet
+						static hasMany = [addresses: Address]
+						static mapping = {
+							addresses lazy: false  //way 1
+							pet fetch: 'join'      //way 2
+						}
+					}
+					class Address {	}
+					class Pet {	}					
+				- Recomendation: fetch: 'join' for single-ended associations and lazy: false for one-to-manys.
+				- Alternative: Batch Fetch:
+				  static mapping = { flights batchSize: 10   }
+			- Locking
+				Every table has a id and version. VERSION is used for optmistic locking.
+				- Optimistic : Default. Uses a version in database which is incremented in each update.  Can throw an OptimisticLockingFailureException 
+					- Whenever you try to update a object, Hibernate comprares version (Object x DB), if it is different other person modified and the modification is rolledback.
+				- Pessimistic: Equivalent to "SELECT * FOR UPDATE" and locking a row.
+					- Programaticaly
+						def airport = Airport.get(10)  or def airport = Airport.lock(10) or def airport = Airport.findByName("Heathrow", [lock: true])
+						airport.lock() // lock for update
+						airport.name = "Heathrow"
+						airport.save()
+					- Configuration
+						version = false. Good for read-only domain objects.
+			- Dirty: Show if a attribute of a object was modified.  Does not work in collection.
+			- Second-level cache
+				- Hibernate session acts as a cache that consolidades repeated save calls and prevent fetches on the same objects.
+				- Second-level cache: Extension of that capability. Caches objs at an additional intermediary level between session cache and DB.
+					- Result in increase speed for often-used data, but at some risks.
+				ex: static mapping = {
+						cache usage: 'read-only', include: 'non-lazy' 
+						topics cache:false
+					}
+				read-only(read-only operations) read-write(update frequently), nonrestrict-read-write(amost no chance to two transactions try to modify obj
+				transational (Fully transational cache)
+		- Querying with GORM
+			- Dynamic Finders : Book.findByReleaseDateBetween(firstDate, secondDate), Book.findByTitle("The Stand")
+			- Where Queries: 
+					- def query = Person.where {
+						lastName == "Simpson"
+					}
+					def bartQuery = query.where {
+						firstName == "Bart"
+					}
+					Person p = bartQuery.find()
+					- def query = Pet.where {
+						owner.firstName == "Joe" || owner.firstName == "Fred"
+					}
+			- Criteria Queries
+				- createCriteria or withCriteria
+					def c = Account.createCriteria()
+					def results = c {
+						between("balance", 500, 1000)
+						eq("branch", "London")
+						or {
+							like("holderFirstName", "Fred%")
+							like("holderFirstName", "Barney%")
+						}
+						maxResults(10)
+						order("holderLastName", "desc")
+					}
+				- SQL Projections: to customize the returned results
+					- useful for returning the average, count, maximum, minimum, distinct, or sum of results
+					def results = c.list {
+						projections {
+						  sqlProjection 'sum(width * height) as totalArea', 'totalArea', INTEGER
+						}
+					}
+					- Projections with criteria
+						def results = Person.withCriteria {
+							 gt "age", {
+								 projections {
+									 avg "age"
+								 }
+							 }
+							 order "firstName"
+						 }
+				- SQL Restrictions: 
+					def c = Person.createCriteria()
+					def peopleWithShortFirstNames = c.list {		//fisrName attribute, but first_name in table
+						sqlRestriction "char_length(first_name) < ? AND char_length(first_name) > ?", [maxValue, minValue]
+					}						
+				- Eacher fetch
+					def results = Airport.withCriteria {
+						eq "region", "EMEA"
+						flights {
+							like "number", "BA%"
+						}
+					}
+				-  Detached Criteria: Queries not associated with a specific Session.  It is created to be used later.
+			- Hibernate Query Language (HQL)
+				Main methods: find, findAll, executeQuery
+				Ex: 
+				
+					def results = Book.findAll("from Book as b where b.title like 'Lord of the%'")
+					def results = Book.findAll("from Book as b, Author as a where b.author = a and a.surname = ? asc", ['Smith'], [max: 10, offset: 20])
+					def results = Book.findAll("from Book as b where b.title like :search or b.author like :search",[search: "The Shi%"])
+					
+			- Events
+				beforeInsert - Executed before an object is initially persisted to the database
+				beforeUpdate - Executed before an object is updated
+				beforeDelete - Executed before an object is deleted
+				beforeValidate - Executed before an object is validated
+				afterInsert - Executed after an object is persisted to the database
+				afterUpdate - Executed after an object has been updated
+				afterDelete - Executed after an object has been deleted
+				onLoad - Executed when an object is loaded from the database
+			- Custom Mapping
+				- It is possible to map table and column based on a preexistent table.
+		- Programmatic Transaction
+			- The withTransaction method deals with the begin/commit/rollback logic for you within the scope of the block.
+			- "save points" to rollback a transaction to a particular point in time if you don't want to rollback the entire transaction.
+			def transferFunds() {
+				Account.withTransaction { status ->
+					def source = Account.get(params.from)
+					def dest = Account.get(params.to)
+					def amount = params.amount.toInteger()
+					if (source.active) {
+						if (dest.active) {
+							source.balance -= amount
+							dest.amount += amount
+						}
+						else {
+							status.setRollbackOnly()
+						}
+					}
+				}
+			}
+	- Web Layer
+		- Controller
+			class BookController {
+				static defaultAction = "list"
+				def index(){}
+				def list() {
+					// do controller logic create model
+					return model
+				}
+			}
+			- Controllers and Scope
+				- servletContext(instance of ServletContext) Also known as application scope, share state across the entire web application. 
+				- session(HttpSession) - The session allows associating state with a given user and typically uses cookies to associate a session with a client.
+				- request(HttpServletRequest) - The request object allows the storage of objects for the current request only.  
+				- params - Mutable map of incoming request query string or POST parameters
+				flash -  make attributes available for this request and the next request only
+				 def findBy = params["findBy"]       def appContext = request["foo"]         def loggedUser = session["logged_user"]
+				 def findBy = params.findBy	         def appContext = request.foo	         def loggedUser = session.logged_user
+				flash.message = "User not found for id ${params.id}"
+			- Scoped Controllers - static scope = "singleton"
+				- prototype (default) - A new controller will be created for each request (recommended for actions as Closure properties)
+				- session - One controller is created for the scope of a user session
+				- singleton - Only one instance of the controller ever exists (recommended for actions as methods)
+				- In Config.groovy defines the default: grails.controllers.defaultScope = "singleton"
+			- Models and Views
+				- Returning a map:
+					def show() {	[book: Book.get(params.id)]	}
+				- Returning a ModelAndView
+					def index() {
+						// get some books just for the index page, perhaps your favorites
+						def favoriteBooks = ...
+
+						// forward to the list view to show them
+						return new ModelAndView("/book/list", [ bookList : favoriteBooks ])
+					}
+				- Selecting a view  (uses a render method)
+					class BookController {
+						def show() {
+							def map = [book: Book.get(params.id)]
+							render(view: "display", model: map) //Render the view grails-app/views/book/display.gsp
+							or  render(view: "/shared/display", model: map) // grails-app/views/shared/display.gsp.
+						}
+					}
+					// render a template to the response for the specified model
+					def theShining = new Book(title: 'The Shining', author: 'Stephen King')
+					render(template: "book", model: [book: theShining])
+					render Book.list(params) as JSON
+
+			- Redirects and Chaining
+				- redirect(controller: 'home', action: "next", params: params) // Also redirects to the index action in the home controller
+				- redirect(uri: "/login.html") // Redirect to an explicit URI
+				- redirect(url: "http://grails.org") // Redirect to a URL
+				- class ExampleChainController {
+					def first() {	chain(action: second, model: [one: 1])	}
+					def second () {	chain(action: third, model: [two: 2] , params: [myparam: "param1"])	}
+					def third() {	[three: 3])	}
+				}
+					result: [one: 1, two: 2, three: 3]
+			- Controller Interceptors
+				def beforeInterceptor = { println "Tracing action ${actionUri}" }
+				or def beforeInterceptor = [action: this.&auth, except: 'login']
+						// defined with private scope, so it's not considered an action
+						private auth() {}
+						def login() { }
+			- Data Binding
+				 def b = new Book(params) // params passed by form.
+				 or p.properties['firstName','lastName'] = params
+				 or bindData(p, params, [exclude: 'dateOfBirth'])
+				 or  def displayInvoice(String accountNumber, int accountType) //with params.accountNumber, and params.accountType
+			- XML and JSON
+				def results = Book.list()
+				render(contentType: "text/xml") { OR render(contentType: "text/json") {
+					books {
+						for (b in results) {
+							book(title: b.title)
+					}
+				}
+				OR def result = builder.build {
+					categories = ['a', 'b', 'c']
+					title = "Hello JSON"
+				}
+				
+			- Upload
+				-  def f = request.getFile('myFile')
+		- GSP (Groovy Server Page)
+			- Scopes
+				application - The javax.servlet.ServletContext instance
+				applicationContext The Spring ApplicationContext instance
+				flash - The flash object
+				grailsApplication - The GrailsApplication instance
+				out - The response writer for writing to the output stream
+				params - The params object for retrieving request parameters
+				request - The HttpServletRequest instance
+				response - The HttpServletResponse instance
+				session - The HttpSession instance
+				webRequest - The GrailsWebRequest instance
+			- GSP Tags
+				<g:example attr="${new Date()}" attr2="[one:1, two:2, three:3]">
+				   Hello world
+				</g:example>
+			- Variables and Scope
+				<g:set var="now" value="${new Date()}" scope="request" />
+			- Logic and iteration
+				<g:if test="${session.role == 'admin'}">
+				   <%-- show administrative functions --%>
+				</g:if>
+				<g:else>
+				   <%-- show basic functions --%>
+				</g:else>		
+				<g:each in="${[1,2,3]}" var="num">
+				   <p>Number ${num}</p>
+				</g:each>
+			- Link and Resources
+				<g:link controller="book" action="list" id="${currentBook.id} >Book List</g:link>
+				<g:link url="[action: 'list', controller: 'book'] params="[sort: 'title', order: 'asc', author: currentBook.author]">Book List</g:link>
+			- Form
+				<g:form name="myForm" url="[controller:'book',action:'list']">...</g:form>
+			- Fields
+				textField - For input fields of type 'text'
+				passwordField - For input fields of type 'password'
+				checkBox - For input fields of type 'checkbox'
+				radio - For input fields of type 'radio'
+				hiddenField - For input fields of type 'hidden'
+				select - For dealing with HTML select boxes
+				<g:textField name="myField" value="${myValue}" />
+			- Submit
+				<g:actionSubmit value="Some update label" action="update" />
+			- Tags
+				<img src="<g:createLinkTo dir="images" file="logo.jpg" />" />
+			- Views and Template
+				<g:render template="bookTemplate" model="[book: myBook]" />
+				<g:render template="bookTemplate" var="book" collection="${bookList}" />
+				can be expressed as <tmpl:bookTemplate book="${myBook}" />
+			- Layout in siteMesh (a decorator enginer to support view layouts  grails-app/views/layouts)
+				layoutTitle - outputs the target page's title
+				layoutHead - outputs the target page's head tag contents
+				layoutBody - outputs the target page's body tag contents
+				<html>	<head>
+							<title><g:layoutTitle default="An example decorator" /></title>
+							<g:layoutHead />
+						</head>	<body onload="${pageProperty(name:'body.onload')}">
+								<div class="menu"><!--my common menu goes here--></menu>
+									<div class="body">
+										<g:layoutBody />
+									</div>
+								</div>
+							</body>
+				</html>				
+				- Server side include
+					<g:include controller="book" action="list" />
+		- Tag Lib
+			Just create a class in  grails-app/taglib
+			ex: class SimpleTagLib {
+					def emoticon = { attrs, body ->
+					   out << body() << (attrs.happy == 'true' ? " :-)" : " :-(")
+					}
+				}
+				in GSP: <g:emoticon happy="true">Hi John</g:emoticon>
+				
+			ex 2: 	def dateFormat = { attrs, body ->
+						out << new java.text.SimpleDateFormat(attrs.format).format(attrs.date)
+					}
+					<g:dateFormat format="dd-MM-yyyy" date="${new Date()}" />
+					
+			ex 3: 	def isAdmin = { attrs, body ->
+						def user = attrs.user
+						if (user && checkUserPrivs(user)) {
+							out << body()
+						}
+					}
+					<g:isAdmin user="${myUser}">
+						// some restricted content
+					</g:isAdmin>
+			- Tags Namespace :     static namespace = "my"	use: <my:example name="..." />
+			- JSP Tag Libs
+				<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>		<fmt:formatNumber value="${10}" pattern=".00"/>
+		- URL Mapping in  grails-app/conf/UrlMappings.groovy
+			- ex:
+				class UrlMappings {
+					static mappings = {	}
+				}
+			- To Controller and Actions
+				"/product"(controller: "product", action: "list").  -> localhost:8080/project/product
+			- Variables
+				- "/product/$id?"(controller: "product")		->  localhost:8080/project/product/MacBook // ? shows optional
+				- "/$blog/$year/$month/$day/$id"(controller: "blog", action: "show") ->  localhost:8080/project/blogName/2013/10/30/IdValue
+				- "/$controller/$action?/$id?"() Dinamic Controller and action
+			- Mapping to views
+				- "/"(view: "/index")  // map the root URL
+				- "403"(controller: "errors", action: "forbidden") or "403"(view: "/errors/forbidden") -> when there is a specific error.
+			- To HTTP Methods
+				- "/product/$id"(controller:"product") { action = [GET:"show", PUT:"update", DELETE:"delete", POST:"save"]	}
+			- It is possible to impose constraints
+				- "/$blog/$year?/$month?/$day?/$id?" {
+					 controller = "blog"
+					 action = "show"
+					 constraints {
+						  year(matches:/\d{4}/)  //obly to be 4 digits
+						  month(matches:/\d{2}/)
+						  day(matches:/\d{2}/)
+					 }
+				}
+		- WebFlow (TO DO)
+			- Just adds "Flow" at the end of an action.
+		- Filters
+			- Just create a Class that ends with Filters in grails-app/conf directory.
+			all(controller: '*', action: '*') { //Every controller and every action
+			justBook(controller: 'book', action: '*') // all actions in controller book.
+			notBook(controller: 'book', invert: true)  //every controlelr except BookController
+			- Types
+				- before 
+				- after 
+				- afterView
+		- AJAX
+			Must add previously int <head> <g:javascript library="jquery" />
+			- Remote link
+				- <div id="message"></div>
+				  <div id="error"></div>
+				  <g:remoteLink update="[success: 'message', failure: 'error']" action="delete" id="1">
+					Delete Book
+				  </g:remoteLink>
+				- def delete() {
+					def b = Book.get(params.id)
+					b.delete()
+					render "Book ${b.id} was deleted"
+				}
+			-  Remote Form Submission
+				<g:formRemote url="[controller: 'book', action: 'delete']" update="[success: 'message', failure: 'error']">
+					<input type="hidden" name="id" value="1" />
+					<input type="submit" value="Delete Book!" />
+				</g:formRemote >
+				OR
+				<form action="delete">
+					<input type="hidden" name="id" value="1" />
+					<g:submitToRemote action="delete" update="[success: 'message', failure: 'error']" />
+				</form>
+			- AJAX Events
+				- onSuccess - The JavaScript function to call if successful
+				- onFailure - The JavaScript function to call if the call failed
+				- on_ERROR_CODE - The JavaScript function to call to handle specified error codes (eg on404="alert('not found!')")
+				- onUninitialized - The JavaScript function to call the a Ajax engine failed to initialise
+				- onLoading - The JavaScript function to call when the remote function is loading the response
+				- onLoaded - The JavaScript function to call when the remote function is completed loading the response
+				- onComplete - The JavaScript function to call when the remote function is complete, including any updates
+			- Ajax on the Server
+				- Content Centric Ajax - Where you just use the HTML result of a remote call to update the page
+					gsp:
+						<g:remoteLink action="showBook" id="${book.id}"
+									  update="book${book.id}">Update Book</g:remoteLink>
+						<div id="book${book.id}">
+						   <!--existing book mark-up -->
+						</div>
+					groovy:
+						render(template: "bookTemplate", model: [book: b])
+				- Data Centric Ajax - Where you actually send an XML or JSON response from the server and programmatically update the page
+					gsp:
+						<g:javascript>
+							function updateBook(e) {
+								var book = eval("("+e.responseText+")") // evaluate the JSON
+								$("book" + book.id + "_title").innerHTML = book.title
+							}
+						<g:javascript>
+						<g:remoteLink action="test" update="foo" onSuccess="updateBook(e)">
+							Update Book
+						</g:remoteLink>
+						<g:set var="bookId">book${book.id}</g:set>
+						<div id="${bookId}">
+							<div id="${bookId}_title">The Stand</div>
+						</div>
+					groovy:
+						    def b = Book.get(params.id)
+							render b as JSON
+				- Script Centric Ajax - Where the server sends down a stream of JavaScript to be evaluated on the fly
+						def b = Book.get(params.id)
+						response.contentType = "text/javascript"
+						String title = b.title.encodeAsJavascript()
+						render "$('book${b.id}_title')='${title}'"
+	- Validation
+		- Constraints
+			static constraints = { }
+		- Validating constraints
+			def user = new User(params)
+			if (user.validate())  ->   else user.errors.allErrors.each { println it   }
+		- Validating on the Client
+			- <g:renderErrors bean="${user}" />
+			or
+			- <g:hasErrors bean="${user}">
+			  <ul>
+			   <g:eachError var="err" bean="${user}">
+				   <li>${err}</li>
+			   </g:eachError>
+			  </ul>
+			</g:hasErrors>
+		- Hilight Errors
+			<div class='value ${hasErrors(bean:user,field:'login','errors')}'>
+				<input type="text" name="login" value="${fieldValue(bean:user,field:'login')}"/>
+			</div>
+	- Service Layer
+		- src/services.  Used to add core application logic. 
+		- Declarative transactions
+			-  static transactional = false
+			or
+			@Transactional
+			class BookService {
+			or
+			@Transactional(readOnly = true)
+			def listBooks() 
+			@Transactional   // read-write
+			def updateBook() {
+			def deleteBook() { //Not transactional
+		- AutoWiring
+			class AuthorController {
+				def authorService
+			}
+		- Services from Java
+			In a class Java     private BookStore store;
+	- Testing
+		MockFor ->   def control = mockFor(SearchService)
+		control.demand.searchWeb { String q -> ['mock results'] }
+
+		@TestFor(SimpleController)
+		class SimpleControllerTests {		
+			void testSearch() {
+			def control = mockFor(SearchService)
+			control.demand.searchWeb { String q -> ['mock results'] }
+			control.demand.static.logResults { List results ->  }
+			controller.searchService = control.createMock()
+			controller.search()
+			assert controller.response.text.contains "Found 1 results"
+		}
+			
+		ex controller:
+			assert response.text == 'hello'
+			redirect action: 'hello' 								--> assert response.redirectedUrl == '/simple/hello'
+			render view: "homePage", model: [title: "Hello World"] 	--> assert view == "/simple/homePage";  assert model.title == "Hello World"
+		    render template:"snippet" 								-->  assert response.text == 'contents of template'  or
+																		views['/simple/_snippet.gsp'] = 'mock contents' 
+																		controller.display()
+																		assert response.text == 'mock contents'
+			def renderXml() {										controller.renderXml()	
+				render(contentType:"text/xml") {		-->			assert "<book title='Great'/>" == response.text	
+					book(title:"Great")								 assert "Great" == response.xml.@title.text()
+				}
+			def renderJson() {							-->			controller.renderJson()
+				render(contentType:"text/json") {					assert '{"book":"Great"}' == response.text
+				book = "Great"										 assert "Great" == response.json.book	
+			}
+			
+		- Testing constraints
+			static constraints = {
+				title blank: false, unique: true
+				author blank: false, minSize: 5
+			}
+			
+			def existingBook = new Book(
+                title: "Misery",
+                author: "Stephen King")
+
+			mockForConstraintsTests(Book, [existingBook])			
+			
+			// validation should fail if both properties are null
+			def book = new Book()
+			assert !book.validate()
+			assert "nullable" == book.errors["title"].code
+			assert "nullable" == book.errors["author"].code
+				
+		- Integrating test
+			Tests many layers, usually from service. using 	class MyServiceTests extends GroovyTestCase {
+		- Funcional Test
+			- Invoque HTTP request against the running application and verify the resultant behaviour. 
+			- Ex: Selenium
+	- Internationalization (I18n)
+		- files message(_ptBR).properties inside grails-app/i18n 
+		- Reading messages
+			<g:message code="my.localized.content" args="${ ['Juan', 'lunes'] }" /> --> my.localized.content=Hola, Me llamo {0}. Hoy es {1}.
+	- Security
+		- Authentication with filter
+			grails create-filters security. In filteer verify if there is a session.user otherwise send to login.
+		- Better use spring Security.
+	- Plugin (TODO)
+	- Web Service
+		- Provides API of a application.
+		- REST (Not a technology, but a architecture) Involves sending simple XML or JSON combined with URL partterns
+			- ex of CRUD: GET(retrieving), PUT(creating), POST(updating), DELETE(detele)
+				"/product/$id"(controller: "product") {
+					action = [GET: "show", PUT: "update", DELETE: "delete", POST: "save"]
+				}
+		- SOAP
+			Uses plugin of CXF, Axis2 
+	- Grails and Spring
+	- Grails and Hibernate
+		Create a hibernate.cfg.xml file in your project's grails-app/conf/hibernate
+	- Scaffold
+		- Scaffolding lets you auto-generate a whole application for a given domain class including:
+			- The necessary views
+			- Controller actions for create/read/update/delete (CRUD) operations
+		 - static scaffold = true
+		 
+	
+	
+		
+		
+	
+		
+			
+			
+						

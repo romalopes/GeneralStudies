@@ -1,0 +1,132 @@
+- AWS (Amazon Web Services)
+=========================
+	- AWS is Cloud Computing
+		Benefits
+			Elastic capacity; scale up and down
+			Pay as you go and pay only for what you use
+			Don't need to manage infrastructure reosurces
+	- Layers	
+		- Application
+		- Tools to access services
+			Libraries and SDKs: .Net, Java, etc
+			Web Interfaces: Management Console
+			Tools: AWS toolkit for Eclipse
+			Command Line Interface
+		- Cross Service features
+			Authentication and Autorization: AWS IAM, MFA
+			Monitoring: Amazon CloudWatch
+			Deployment and Automation: AWS Elastic Beanstalk, AWS CloudFormation
+		- Platform building blocks
+			Parallel Processing: Amazon Elastic MapRedure
+			Payments: Amazon DevPay, Amazon FPS
+			Content Delivery: Amazon CloudFront
+			Workforce: Amazon Mechanical Turk
+			Messagin: Amazon SNS, Amazon SQS
+			Email: Amazon SES
+		- Infrastructure building blocks
+			Compute: Amazon EC2
+			Storage: Amazon S3, Amazon EBS
+			Network: Amazon VPC, Elastic LB, Amazon Route 53
+			Database: Amazon RDS, Amazon SimpleDB
+	- Compute
+		- Amazon Elastic Computer Cloud - EC2
+			- Configure CPU, memory, partition, 
+			- Virtual Server (Virtual Machine)
+				- on-demand compute power
+				- obtain and boot new server instances in minutes
+				- Quickly scale capacity up or down
+				- You can define AMI(Amazon Machine Image)
+	- Storage
+		- Amazon Elastic Block Store(EBS)
+			- It is like a hard drive
+			- 1 Gb to 1 TB
+		- Amazon S3 - Simple Storage Service
+			- It is the storage on the Internet.  It was made to allow scale web computation 
+			- 
+			- Agile, flexible and geo-redundant cloud-based mechanism of storage
+			- Highly scalabe, durable and available
+			- Good to use web service interface
+			- It has containers or Buckets
+				- Just upload files (make it public or give permissions)
+	- Netword
+		- Amazon VPC (Virtual Private Cloud)
+			- VPN - > VPC [ (Private SubNet) (Public Subnet) ] <-> Internet In the cloud(Amazon S3, EC2, SimpleDB, RDS)
+			Configurations:
+				- VPC with a single public Subnet: Insntance Private, isolate section of AWS cloud with direct access to intenet.
+				- VPC with Public & Private Subnets: Adds a second subnet whose instances are not exposed to the internet
+				- VPC with Internet & VPN Access: adds an IPsec VPN connection between a VPC and a data  center
+				- VPC with VPN only access: Private subnet which is connected to a corporate data center via a IPSec VPN connection.
+		- Elastic LB (Load Balancer)
+		- Amazon Route 53 : Manage the domain
+	- Amazon Management Console
+		- Dashbord with portal to all services
+	- DataBase
+		- Amazon SimpleDB
+		- Amazon RDS(Relational DataBase Service) - aws.amazon.com/rds /free-trial
+			- Introduction
+				- Service to make easy the Setup(configuration), operation and scale of a DB in the cloud.
+				- It helps manages administrative DB tasks
+				- Works with Oracle, MySQL and Ms SQL reusing the old code.
+			- Features	
+				Rapid provisioning (what you need, when you need and automated backups)
+				Scalable storage(add adicional storage easily)
+				High availability (redudancy) 
+				Scalable compute(include CPU and memory)
+			- About the service
+				- Simple implementation: Using Amazon Management Console or API
+				- Manage: Deal with cosuming DB tasks such as backups, replication patches 
+				- Compatible: Native access to a Relational DB
+				- Fast and Scalable: Up to 30.000IOPS/Instance and 3TB storage.
+			- Resources
+				- Pre-set instances
+				- Metrics and Monitoring
+				- Automatic software corrections
+				- Automated Backups
+				- DB Snapshotes
+				- Event Notifications
+				- Deploy in Multi-AZ(availability zone).  Better availabilidy and durability for instances.
+				- Provisioned IOPS
+				- Scalability, Replication, Isolation and security
+				- Resource level permissions: User grous(AWS IAM)
+			- Application lifecycle
+				Development ->	Release -> Production -> Popularity
+			- Application archtecture
+				Load Balance (Elastic load balance)
+				Application Servers(Amazon EC2)
+				DataBase (Amazon RDS)
+					- Different availability zones
+						Just change a combo in "Modify DB Instance rds-cms"
+					- It is possible to create replicas.
+				- Between Load Balance and Application Serves
+					Cloud formation template and Stack(seems to be the jenkins)
+						Allows you to deploy your infrastructure resources and application on AWS. 
+			- Instances
+				On demand: Pay for the computational capacity PER HOUR.
+				Reserved: Pay for each instance.  Discound over hourly used
+					Three types: soft, medium, hard
+				- Classes of instances
+					- Each class of instance has a specific memory, ECU(virtual core), 32/64-bit platforme, I/O Capacity, size of IOPS optimized.
+				- How to Create one DB Instance and connect a DB on that DB instance				
+					Steps
+						http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/images/RDS_GSG_Flow.png
+					
+	- AWS Grails Plugin
+			- Init
+				- Install:
+					grails install-plugin aws
+					- or
+					Declare in BuildConfig.groovy
+				- In Config.groovy
+					grails.plugin.aws. accessKey and secretKey
+			- AWS S3
+				- In Config.groovy
+					- Defining a defult Bucket Name.  If you don't define a bucket the system will upload in this bucket
+						grails.plugin.aws.s3.bucket = "grails-plugin-test"
+					- Bucket location - default location
+						- grails.plugin.aws.s3.bucketLocation = "EU"
+					- ACL (file permission)
+						grails.plugin.aws.s3.acl = "public"  //private, public_read_write, authenticated_read
+				- Upload files with s3upload
+					def s3file = new File("/tmp/test.txt").s3upload {	path "folder/to/my/file/"	}
+				- Deleting file
+					aws.s3().on("my-app-bucket-photos").delete("photo.jpg")

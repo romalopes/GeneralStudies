@@ -1,0 +1,115 @@
+- SQL
+	- Inner Join
+		- Matches rows in one table with rows in other tables and return the intersection betwenn them.
+		- Ex:
+			SELECT column_name(s) FROM table1
+			INNER JOIN table2 ON table1.column_name=table2.column_name;
+			INNER JOIN table3 ON table1.column_name=table3.column_name;
+			...
+			where WHERE_CONDITIONS
+		- Criteria
+			- Specify the main table in the select(FROM)
+			- Specify the table to join.  Mane tables is bad for performance
+			- Specify the join conditions.
+		
+		http://www.w3schools.com/sql/img_innerjoin.gif
+	- View
+		Virtual table based on a result-set of a SELECT.
+			- A View is a "frozen" definition at criation time.  Changes in the original table does not affects the VIEW.
+			- CREATE VIEW "VIEW_NAME" AS "SQL COMMAND";
+			- DROP VIEW view_name
+			- ALTER VIEW (with another select)
+			  ALTER
+				 [ALGORITHM =  {MERGE | TEMPTABLE | UNDEFINED}]
+				  VIEW [database_name].  [view_name]
+				   AS 
+				 [SELECT  statement]
+		- Algorithms
+			- MERGE: The insert is combined with the SELECT.  More efficient. Only when view represent one-to-one relationship. 
+			- TEMPLATE: First create a temporary table based on the SELECT and then the insert.
+			- UNDEFINED: MySql decided which algorithm to use.
+		Benefits
+			- View can hide complexity
+				If you have complexy select with join, complexy logic.  Ex: A View with a calculum over two columns.
+			- View can be used as a security mechanism
+				- Set permissions to the view instead of table, select a set of columns.  Ex, remove credit card column from a view.
+			- Views can support legacy code
+				- If the database changes, you can create a view based with the same schema as the legacy tables that was removed.
+		Drawback
+			- Performance specially if a view is created from another view
+			- The necessity to change the view whenever the database changes.
+		A view to be updateble
+			- The SELECT statement must only refer to one database table.
+			- The SELECT statement must not use GROUP BY or HAVING clause.
+			- The SELECT statement must not use DISTINCT in the column list of the SELECT clause.
+			- The SELECT statement must not refer to read-only views.
+			- The SELECT statement must not contain any expression (aggregates, functions, computed columns…)
+	- Index
+		Index is a pointer to data in a Table.
+		Help to find data easier.  Used speed up data retrieval without reading the whole table, but slow the input.
+		- Users cannot see index, they are just used by the engine.
+		- First goes through a index to find a data.
+		- How to do: Create a index with a name, table and COLUMNS to be indexed.  Also if the index is ASCENDING or DESCENDING.
+			- CREATE [UNIQUE] INDEX "INDEX1, INDEX2" ON "TABLE" (COLUMN1, COLUMN2);
+		- Unique INDEX
+			Does not allow duplicated values to be inserted in the TABLE.
+		- DROP
+			- DROP INDEX index_name;
+		When
+			- Use
+				- To improve performance 
+			- Avoid
+				- In small tables
+				- Table with many update/insert
+				- In Columns with high number of NULL value
+	Stored Procedure
+		- Declarative SQL statement that encapsulates repetitive tasks.  Can be called by triggers, other stored procedure or application
+		- It is stored in server.
+		- Advantages:
+			- Decrease net traffic(application - database)
+				- Instead of sending SQL statement, app send just the name and parameters
+			- increase select performance.
+				After created it is compiled and stored in database
+				-  Mysql put it in a cache. Mysql maintaing its own stored procedure for each connection.
+			- create security mechanism
+				Admin can grant permissions to application that access SP without giving access to database.
+			- Simplify application code(no need to keep queries inside the logic)
+		- Disadvantages
+			- SP is a function, than it can overuse memory. DB is not designed for logical operations
+			- Difficult to debug.  MySQL doesn't have this functionaly
+			- difficult to develop and maintain.
+		- Ex:
+			Create
+				DELIMITER //
+				CREATE PROCEDURE Method(IN/OUT/INOUT param VARCHAR(255))
+					BEGIN
+						DECLARE total INT DEFAULT 0
+						select count(*) into total from clients;
+						SELECT * FROM clients;
+				   END //
+				DELIMITER ;
+			Call
+				CALL STORED_PROCEDURE();
+			Show
+				SHOW PROCEDURE STATUS WHERE name LIKE '%clients%'
+	- Triggers
+		It is a special type of Stored Procedure. It is not called directly, but automaticaly when some event happens.
+		Used to validation and data modification
+		Used for auditing or reflect changes.
+		Types of triggers:
+			BEFORE/AFTER  TABLE INSERT/UPDATE/DELETE
+		Syntax
+			CREATE TRIGGER Name 
+			BEFORE/AFTER INSERT/UPDATE/DELETE
+			ON table
+			FOR EACH ROW
+			BEGIN
+				/*code*/
+			END
+		Show Trigger
+			SELECT * FROM Information_Schema.Trigger
+			WHERE Trigger_schema = 'database_name' AND
+				Trigger_name = 'trigger_name';
+		- NEW and OLD
+			NEW: Access to data already changed
+			OLD: Access to old data

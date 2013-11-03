@@ -1,0 +1,124 @@
+- Apache 
+	Intalation
+		- Download
+		- Remove conflicts
+			- Uncked 80 port of skype
+			- goes to "activate resources" from windows.
+		- run http://localhost  -> It will appear "It Works!"
+		- Enabling/Disabling Service
+			Control Panel -> Services
+		- Changing Port, ServerName and Email
+			- httpd: Listen 81, ServerName localhost:80 , ServerAdmin romalopes@yahoo.com.br
+		- How to change from localhost to another name/configuring host
+			http://complete-concrete-concise.com/web-tools/how-to-change-localhost-to-a-domain-name
+			- C:\Windows\System32\drivers\etc\hosts 
+				add:
+					127.0.0.1       romalopes.dev
+					::1             romalopes.dev
+	- HTTPS / SSL(Secure Sockets Layer)
+		- What is HTTPS
+			
+			Uses port:443. It uses another layer of criptografy SSL/TLS to protect traffic against atacks
+			Creates a secure channel in a insecure net.  This trust is in "certification authority"
+			
+		- http://rubayathasan.com/tutorial/apache-ssl-on-windows/
+		- Download httpd-2.2.25-win32-x86-openssl-0.9.8y
+		- Creating a self-signed SSL Certificate using OpenSSL
+			in %APACHE%/bin: set OPENSSL_CONF=C:\workspace\linguagens\java\servers\apache2.2\conf\openssl.cnf
+			- openssl req -new -out server.csr
+				- Creates a certificate signing request and a private key.
+				- PEM pass phrase: The password ex: anderson1
+				- Common Name: fully qualified domain associated with this certificate : romalopes.dev
+			- openssl rsa -in privkey.pem -out server.key
+				- To remove the pass phase from the private key.
+			- openssl x509 -in server.csr -out server.crt -req -signkey server.key -days 365
+				- Set up an expiry date.  Temporary certificate
+			- copy 
+				server.crt and server.key to %APACHE%/conf
+			- in httpd.conf
+				Uncoment 
+					- LoadModule ssl_module modules/mod_ssl.so
+					- Include conf/extra/httpd-ssl.conf
+			- Modify \conf\extra\httpd-ssl.conf
+				<VirtualHost _default_:443> 
+					ServerAdmin some@email.com 
+					DocumentRoot "Your Root folder location" 
+					ServerName www.domain.com:443 
+					ServerAlias domain.com:443 
+					ErrorLog "logs/anyFile-error.log" 
+					CustomLog "logs/anyFile-access.log" common 
+					SSLEngine on
+
+					SSLCertificateFile "C:/Program Files/Apache Software Foundation/Apache2.2/conf/server.cert"
+
+					SSLCertificateKeyFile "C:/Program Files/Apache Software Foundation/Apache2.2/conf/server.key" 
+				</VirtualHost>
+	- With o Tomcat
+		http://www.ramkitech.com/2012/10/tomcat-clustering-series-simple-load.html
+		http://www.ntu.edu.sg/home/ehchua/programming/howto/ApachePlusTomcat_HowTo.html
+		http://www.ntu.edu.sg/home/ehchua/programming/howto/images/ApachePlusTomcat.png
+		http://www.ntu.edu.sg/home/ehchua/programming/howto/images/HTTP_ClientServerSystem.png
+		- Why integrate Tomcat with Apache?
+			- Clustering: With Apache you can use multiple tomcats
+			- Security
+			- Speed for static content
+		- To run
+			- Apache needs to load a adpter module which uses  Apache JServ Protocol (AJP) to comunicate with Tomcat via another TCP port (8009)
+			- When Apache receives an HTTP request:
+				- Apache checkes if the request belongs to Apache, Tomcat, PHP, etc
+				- If Tomcat, Adapter takes the request and forwards it to Tomcat.
+		- Steps
+			- Install Apache HTTP Server
+			- Install Tomcat
+			- tomcat.apache.org (-> Download -> Tomcat Connectors -> JK 1.2 -> Binary Releases -> windows ->  tomcat-connectors-1.2.37-windows-i386-httpd-2.4.x.zip .
+			- rename it to mod_jk and copy to %APACHE%/modules
+			- create a file mod_jk.conf in %APACHE%/conf
+				# Load mod_jk module
+				# Update this path to match your modules location
+				LoadModule jk_module modules/mod_jk.so
+
+				# Where to find workers.properties
+				# Update this path to match your conf directory location
+				JkWorkersFile C:/workspace/linguagens/java/servers/apache-tomcat-7.0.16/conf/workers.properties
+
+				# Where to put jk logs
+				# Update this path to match your logs directory location
+				JkLogFile C:/workspace/linguagens/java/servers/apache-tomcat-7.0.16/logs/mod_jk.log
+
+				# Set the jk log level [debug/error/info]
+				JkLogLevel info
+
+				# Select the log format
+				JkLogStampFormat "[%a %b %d %H:%M:%S %Y]"
+
+				# JkOptions indicate to send SSL KEY SIZE,
+				JkOptions +ForwardKeySize +ForwardURICompat -ForwardDirectories
+
+				# JkRequestLogFormat set the request format
+				JkRequestLogFormat "%w %V %T"
+
+				# Send everything for context /ws to worker ajp13
+				JkMount /ws ajp13
+				JkMount /ws/* ajp13 
+
+				# Send everything for context /examples to worker ajp13
+				JkMount /examples ajp13
+				JkMount /examples/* ajp13
+			- Include this file in httpd.conf
+				include C:/workspace/linguagens/java/servers/apache-tomcat-7.0.16/conf/mod_jk.conf
+			- Create the C:/workspace/linguagens/java/servers/apache-tomcat-7.0.16/conf/workers.properties
+				# Define 1 real worker named ajp13
+				worker.list=ajp13
+
+				# Set properties for worker named ajp13 to use ajp13 protocol,
+				# and run on port 8009
+				worker.ajp13.type=ajp13
+				worker.ajp13.host=localhost
+				worker.ajp13.port=8009
+				worker.ajp13.lbfactor=50
+				worker.ajp13.cachesize=10
+				worker.ajp13.cache_timeout=600
+				worker.ajp13.socket_keepalive=1
+				worker.ajp13.socket_timeout=300
+			- Configure Tomcat
+				conf/server.xml to start the AJP1.3 service on TCP port 8009

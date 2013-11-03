@@ -1,0 +1,1386 @@
+- Spring
+
+http://docs.spring.io/spring/docs/3.0.0.M3/reference/html/ch01.html
+
+	- What is in 3.0
+		- Full support to REST using XML, JSON, RSS
+		- New annotations for Spring MVC
+		- Support declarative Validation
+		- Object to XML mapping 
+	- Application Context
+		- ClassPathXmlApplicationContext
+		- FileSystemXmlApplicationContext
+		- XmlWebApplicationContext
+	- Example os a simple spring bean
+		package com.springinaction.springidol;
+		public class Juggler implements Performer{
+			private int beanBags=3;
+			public Juggler(){	}
+			public Juggler(int beanBags){
+				this.beanBags=beanBags;
+			}
+			public PoeticJuggler(int beanBags,Poem poem){
+				this.beanBags = beanBags;
+				this.poem=poem;
+			}
+			public voidperform()throwsPerformanceException{
+				System.out.println("JUGGLING"+beanBags+"BEANBAGS");
+			}
+		}
+		<bean id="duke" class="com.springinaction.springidol.Juggler">
+			<constructor-argvalue="15"/>
+			<constructor-argref="sonnet29"/>
+		ApplicationContext ctx=new ClassPathXmlApplicationContext("com/springinaction/springidol/spring-idol.xml");
+		</bean>
+		Performer performer=(Performer)ctx.getBean("duke");
+		performer.perform();
+	- List
+		<bean id="hank" class="com.springinaction.springidol.OneManBand">
+			<propertyname="instruments">
+				<set>   -- <list> --- <prop>
+					<refbean="guitar"/>
+					<refbean="cymbal"/>
+					<refbean="harmonica"/>
+					<refbean="harmonica"/>
+				</set>
+				or
+				<map>
+					<entrykey="GUITAR"value-ref="guitar"/>
+					<entrykey="CYMBAL"value-ref="cymbal"/>
+					<entrykey="HARMONICA"value-ref="harmonica"/>
+				</map>
+			</property>
+		</bean>
+	
+	- Scoping
+		- Singleton: Only one
+		- prototype: Always instantiate.
+		- Used in spring MVC
+			- request: scope of to HTTP request
+			- session: scope of to HTTP session
+		- Used in portal context
+			- global-session: scope to a global session.
+	- AutoWiring
+		- Find a already created object to resolve ambiguity
+		- The moon is bright tonight.  Which moon.  Everybody knows which moon.
+		
+		- Four Kinds
+			- byName: Try to find beans that have the same name
+				<bean id="kenny" class="com.springinaction.springidol.Instrumentalist"	autowire="byName">
+					<propertyname="song"value="JingleBells"/>
+				</bean>
+				<bean id="instrument" class="com.springinaction.springidol.Saxophone"/>
+				- Tell spring to consider all properties and look for beans that are declared with the same name as the properties.
+			- byType: Try to find a beans by type
+			- Constructor: Try to match up a constructor of the wired bean with beans whose types are assigned to the constructor arguments
+			- autodetect: Attempts to apply constructor autowiring first. It that fails bytype will tried.
+		- Wiring with annotations
+			<context:annotation-config/>  This tells Spring that you intend to use annotation-based wiring in spring.
+			- 3 annottions
+				- @Autowired
+				- @Inject
+				- @Resource
+		- Other Annotations
+			- @Component: Stteriotype indicating that a bean is a Spring Component
+				Should use <context:component-scan> to avoid using the XML configuration.
+				@Component("eddie")
+				public classInstrumentalistimplementsPerformer{ ..
+			- @Controller: A Spring MVC controller
+			- @Repository: Class that defines a data repository
+			- @Service: Defines a service
+		- Declaring a simple bean
+			- @Bean
+			  public Performer duke(){
+				return newJuggler();
+   			  }
+				@Bean tells spring that this method will return an object that should be registered as a bean in Spring application context.
+				The id will be the method name.
+	- Aspect-Oriented Spring
+		- Cross-cutting programming
+		- Usually used in: Loggin, Transaction, Security
+		- Terminology
+			- Advice: Indicates the job that a aspect does.  Defines WHAT and WHEN of a aspect.
+				- 5 kinds of advice:
+					- Before, After, After-returning, After-throwing, Around(before and after)
+			- Join Points: Point of execution of the application where an aspect can be plugged in(method, exception, field modified).
+			- Pointcuts: Matches one or more join points at which advice should be woven(entrelaçado).
+			- Aspects: Merge of advice and 	pointcuts.
+		- Weaving
+			- Compile time
+			- Classload time
+			- Runtime
+	- Spring with Data Base
+		Spring suports: JDBC, Hibernate, JPA(Java Persistence API), etc
+		Objetivo do Spring e usar o conceito de interface do OO.  This is done in the Spring's data access 
+		Different from JDBC, Spring provides several data access exceptions rather than SQLException.
+			The main exception DataAccessException is checked exception.
+		Templating data access
+			Two parts
+				fixed(templates)
+					Controls transaction, manages resouces, handle exceptions
+				variable(callbacks)				
+					create statements, bind parameters, marshals result sets
+				Steps
+					1- Prepare resources
+					2 - Start Transaction		3 - Excecute in tarnsaction
+												4 - Return data
+					5 - Commit/Rollback transaction
+					6 - Closes resources and handle erros
+			Several different kinds of templates? JDBCTempale, HibernateTemplate, JpaTemplate, etc
+		Configuring a data source
+			Main options for configuring data source beans
+			- JDBC Driver
+				Two data source classes to choose?
+					- DriverManagerDataSource: Returns a niew connection every time that a connection is requested.  No pool
+					- SingleConnectionDataSource: Return the same connection every time a connection is requested. 
+					<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+						<propertyname="driverClassName"
+						value="org.hsqldb.jdbcDriver"/>
+						<propertyname="url"
+						value="jdbc:hsqldb:hsql://localhost/spitter/spitter"/>
+						<propertyname="username"value="sa"/>
+						<propertyname="password"value=""/>
+					</bean>		
+					- Good for small applications or development.
+			- look up by JNDI
+				Usually in a Java EE application server/container.
+				Configuration can be managed completely external
+				<jee:jndi-lookupid="dataSource"
+					jndi-name="/jdbc/SpitterDS"
+				resource-ref="true"/>				
+			- pool connections
+				Uses Jakarta Commons Database connection Pooling(DBCP)
+				Includes several data sources that provide pooling. Most used = BasicDataSource(similar to DriverManagerDataSource)
+				<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+					<propertyname="driverClassName"value="org.hsqldb.jdbcDriver"/>
+					<propertyname="url" value="jdbc:hsqldb:hsql://localhost/spitter/spitter"/>
+					<propertyname="username"value="sa"/>
+					<propertyname="password"value=""/>
+					<propertyname="initialSize"value="5"/>
+					<propertyname="maxActive"value="10"/>
+				</bean>				
+			
+		Using JDBC with Spring
+			- Dont require mastering another framework's query language
+			- It's built on top of SQL
+			- Take advantage of database's proprietary features
+			- Lets you work with data as a lower level than any framework
+				private static final String SQL_INSERT_SPITTER= "insert into spitter(username,password,fullname)values(?,?,?)";
+				private DataSourcedataSource;
+					public voidaddSpitter(Spitterspitter){
+						Connectionconn=null;
+						PreparedStatementstmt=null;			
+						try {
+							conn =dataSource.getConnection();
+							stmt =conn.prepareStatement(SQL_INSERT_SPITTER);
+							stmt.setString(1,spitter.getUsername());
+							stmt.setString(2,spitter.getPassword());
+							stmt.setString(3,spitter.getFullName());
+							stmt.execute();
+						}.... finally, SQLException....
+					}
+			JDBC Templates (Three templates classes)
+				- JdbcTemplate: Most basic of Spring's JDBC templates.  
+					Provide simple access to a database through JDBC and simple indexed-parameter queries
+				- NamedParameterJdbcTemplate:
+					Enables you to perform queries where values are bound to named parameters in SQL, rather than indexed parameters
+				- SimpleJdbcTemplate: (Most important)
+					Take advantage of Java 5 with autoboxing, generics and variable parameter lists
+					<bean id="jdbcTemplate" class="org.springframework.jdbc.core.simple.SimpleJdbcTemplate">
+						<constructor-argref="dataSource"/>
+					</bean>
+					....
+					public classJdbcSpitterDAO implements SpitterDAO{
+						...
+						privateSimpleJdbcTemplatejdbcTemplate;
+						public voidsetJdbcTemplate(SimpleJdbcTemplatejdbcTemplate){
+							this.jdbcTemplate=jdbcTemplate;
+						}
+						public voidaddSpitter(Spitterspitter){
+							jdbcTemplate.update(SQL_INSERT_SPITTER,
+								spitter.getUsername(),
+								spitter.getPassword(),
+								spitter.getFullName(),
+								spitter.getEmail(),
+								spitter.isUpdateByEmail());
+								spitter.setId(queryForIdentity());
+						}
+						
+						public SpittergetSpitterById(longid){
+							return jdbcTemplate.queryForObject(
+							SQL_SELECT_SPITTER_BY_ID,
+							new ParameterizedRowMapper<Spitter>(){
+								public Spitter mapRow(ResultSet rs,int rowNum) <- para cada linha cria um Spitter dentro do resultSet
+									throws SQLException{
+										Spitter spitter=newSpitter();
+										spitter.setId(rs.getLong(1));
+										spitter.setUsername(rs.getString(2));
+										spitter.setPassword(rs.getString(3));
+										spitter.setFullName(rs.getString(4));
+										return spitter;
+									}
+								},
+								id
+							);
+						}
+					}
+					- How to access the template via DAO
+						<bean id="spitterDao" class="com.habuma.spitter.persistence.SimpleJdbcTemplateSpitterDao">
+							<propertyname="jdbcTemplate"ref="jdbcTemplate"/>
+						</bean>
+				- DAO Support Classes for JDBC
+					- public class JdbcSpitterDao extends SimpleJdbcDaoSupport implements SpitterDao {
+						public void addSpitter(Spitter spitter){
+							getSimpleJdbcTemplate().update(SQL_INSERT_SPITTER,
+								spitter.getUsername(),
+								spitter.getPassword(),
+								spitter.getFullName(),
+								spitter.getEmail(),
+								spitter.isUpdateByEmail());
+							spitter.setId(queryForIdentity());
+						}
+					 }
+					 <bean id="spitterDao" class="com.habuma.spitter.persistence.JdbcSpitterDao">
+						<property name="jdbcTemplate" ref="jdbcTemplate"/>
+					</bean>
+		Hibernate with Spring
+			Services
+				- Integrated support for Spring declarative transactions
+				- Transparent exception handling
+				- Thread-safe, lightweight template classes
+				- DAO support classes
+				- Resource management
+			<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+				<property name="dataSource" ref="dataSource" />
+				<property name="mappingResources">
+					<list>
+						<value>Spitter.hbm.xml</value>  <<----  Indicates where find the database
+					</list>
+				</property>
+				<property name="hibernateProperties">
+					<props>
+					<prop key="dialect">org.hibernate.dialect.HSQLDialect</prop>
+					</props>
+				</property>
+			</bean>
+			 To use annotation-oriented persistence use AnnotationSessionFactoryBean instead of LocalSessionFactoryBean:
+			<bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+				<propertyname="dataSource"ref="dataSource"/>
+				<property name="packagesToScan" value="com.habuma.spitter.domain"/>  <<<----  Scan the domain classes that are annotated for persistence with Hibernate
+				OR
+				<propertyname="packagesToScan">
+					<list>
+						<value>com.habuma.spitter.domain</value>
+					</list>
+				</property>
+				<property name="hibernateProperties">
+					<props>
+						<propkey="dialect">org.hibernate.dialect.HSQLDialect</prop>
+					</props>
+				</property>
+			</bean>
+			 
+			 packagesToScan
+				Scan the domain classes that are annotated for persistence with Hibernate.
+				Annotations can be 	@Entity or @MappedSuperClass.
+				
+			Spring-Free Hibernate
+				Ex:
+					@Repository
+					public class HibernateSpitterDao implements SpitterDao{
+						privateSessionFactorysessionFactory;
+						@Autowired  <<---  Pegaria a session já criada automaticamente.
+						public HibernateSpitterDao(SessionFactory sessionFactory){	this.sessionFactory=sessionFactory;	} <--- Constructor
+						 
+						private Session currentSession(){	return sessionFactory.getCurrentSession(); } Retrieve the Current Session
+						public void addSpitter(Spitterspitter){	currentSession().save(spitter);	}
+						public Spitter getSpitterById(longid){ return(Spitter)currentSession().get(Spitter.class,id); }
+						public void saveSpitter(Spitterspitter){	currentSession().update(spitter);	}
+						...
+					}
+				With <context:component-scan>, it is not necessary to explicit a DAO class in xml config.  You can just use @Repository
+						<context:component-scan base-package="com.habuma.spitter.persistence"/>
+			JPA (Java Persistence API)
+				- Two kind of persistence managers (both implements EntityManager)
+					- Application-managed: Entity managers are created when a application directly request one from the factory.  Application is responsible
+						for opening and closing entity managers and the transaction.  Most apropriate for use in standalone applications that dont run in a J2EE container.
+					- Container-managed: Entity managers are created and managed by the J2EE container.  App doesnt interact with the factory.	
+						Entity managers are obtained from JNDI.
+				- Configure Application-managed JPA (persistence.xml)
+				<persistencexmlns="http://java.sun.com/xml/ns/persistence"	version="1.0">
+					<persistence-unit name="spitterPU">      <<<<--------------------------- unit name
+						<class>com.habuma.spitter.domain.Spitter</class>
+						<class>com.habuma.spitter.domain.Spittle</class>
+						<properties>
+							<property name="toplink.jdbc.driver" value="org.hsqldb.jdbcDriver"/>
+							<property name="toplink.jdbc.url"value="jdbc:hsqldb:hsql://localhost/spitter/spitter"/>
+							<property name="toplink.jdbc.user"value="sa" />
+							<property name="toplink.jdbc.password"value="" />
+						</properties>
+					</persistence-unit>
+				</persistence>
+				<bean id="emf" class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+					<property name="persistenceUnitName"value="spitterPU"/>  <<<<--------------------------- unit name
+				</bean>
+	- Transaction = Operation all or nothing
+		Motives
+			Concurrenct database access(multiple clients)
+			Resilience to system failures
+		Levels of inconsistency
+			- Tuple-level
+			- Table-level (one table depends on another which is modified)
+			- Multiple-statement: 
+		Transaction group several operations into a single unit of work that fully happens or fully doesn't happen.
+		A Transaction should respect the ACID
+			(Atomic-single action, Consistency- data shouldn't be corrupted, Isolation-One user per data, Durable- result is permanent)
+		Spring suports Programmatics and declarative transaction management.
+		Programmatic transaction management
+			Doesn't require JTA.
+			Can use the persistence mechanism that includes JDBC, Hibernate and JPA.
+			Spring suports distributed transactions(XA) using third-party JTA implementation.
+			Fine-grained control over transaction boundaries(decide when to begin and end)
+			Approach 1
+				adds boundaries in the method using TransactionTemplate(uses the callback mechanism
+				class SpitterServiceImpl {
+					public void saveSpittle(final Spittle spittle){
+						txTemplate.execute(new TransactionCallback<Void>(){  <--- Implement TransactionCallback
+							public void doInTransaction(TransactionStatus txStatus){
+								try{
+									spitterDao.saveSpittle(spittle);
+								} catch(RuntimeExceptione){
+									txStatus.setRollbackOnly();
+									throw e;
+								}
+								return null;
+							}
+						});
+					}
+				}
+				Transaction Template comes from:
+				<bean id="spitterService" class="com.habuma.spitter.service.SpitterServiceImpl">
+					...
+					<property name="transactionTemplate">
+						<bean class="org.springframework.transaction.support.TransactionTemplate">
+							<property name="transactionManager" ref="transactionManager" />
+						</bean>
+					</property>
+				</bean>
+		Declarative transaction management
+			Implemented through AOP and help user decouple an operation from its transaction rules.
+			Allow the definition of transaction boundaries declaratively. Also, additional attibutes.
+				Propagation 
+					Boundaries to respect to the client and to the method being called.
+					7 progapagin behaviors
+						PROPAGATION_MANDATORY - Method must run within a transaction
+						PROPAGATION_NESTED - Method should run within a nested transaction
+						PROPAGATION_NEVER - Method should not run within a transaction
+						etc
+				Isolation levels
+					Defines how much a transaction may be impacted by the activities of other concurrent transactions.
+					Try to solve the following problems:
+						Dirty read: when one transaction reads data that has been written but not yet commited by another transaction.
+						Nonrepeatable reads: when a transaction performs the same query two times and each time the data is different.
+						Phanton reads: Similar to above.
+					Isolation affects performance.  For this reason there are levels. Not all applications requieres perfect isolation.
+					Ex of levels:
+						ISOLATION_DEFAULT: uses default isolation level
+						ISOLATION_READ_UNCOMMITED: Allows read changes that haven't committed.  May result in dirty reads, etc
+						ISOLATION_READ_COMMITED: Allow read changes that have been committed. Prevend dirty reads
+						ISOLATION_REPEATABLE_READ: Multiple reads implies the same results. Stil phantom.
+						ISOLATION_SERIALIZABLE: ACID.  Slowest isolation level.
+				Read-only hints
+					Whether the transaction is read-only.  Data store may be able to apply some optimizations.
+				Timeout
+					To avoid long-running locks and automatically roll back after some seconds.
+				rollback rules
+					Can allow roll back on specific checked exceptions or runtime exceptions.
+
+			<tx:adviceid="txAdvice">
+				<tx:attributes>
+					<tx:methodname="add*"propagation="REQUIRED"/>
+					<tx:methodname="*"propagation="SUPPORTS"
+					read-only="true"/>
+				</tx:attributes>
+			</tx:advice>
+					
+			More convenience.  Declare the transactions in the context definition file.
+			Defining annotation-driven transactions
+				In the configuration XML file
+					<tx:annotation-driven/> <--- tells Spring to examine all beans in the application context that are annotated with @Transactional(class or method level)
+					Ex:
+						@Transactional(propagation=Propagation.SUPPORTS,readOnly=true)
+						public class SpitterServiceImpl implements SpitterService{
+							...
+							@Transactional(propagation=Propagation.REQUIRED,readOnly=false)
+							public void addSpitter(Spitter spitter){
+								...
+							}
+						...
+						}
+		To use transaction manager, it is needed to declare it in the applicatoin context. Configuration:
+			JDBC transactions
+				<bean id="transactionManager"class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+					<property name="dataSource"ref="dataSource"/>
+				</bean>
+				dataSouce is set with a reference to a bean named dataSoruce. dataSource bean is a javax.sql.DataSource defined in context definition file.
+				DataSourceTransactionManager manages transaction by making calls on the java.sql.Connection object retrieved from the DataSource.
+				DataSourceTransactionManager calls commit() or rollback() on Connection object.
+			Hibernate transactions (HibernateTransactionManager)
+				<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+					<propertyname="sessionFactory"ref="sessionFactory"/> <- sessionFactory is wired with a Hibernate SessionFactory
+				</bean>
+				HibernateTransactionManager delegates responsibility for transaction management to org.hibernate.Transaction retrieved from Hibernate session.
+				HibernateTransactionManager call commit() or rollback() on Transaction obj 
+		To avoid deadlock
+			set a timer in the transaction.
+	- Spring MVC
+		- Flow of a requiest in Spring MVC
+			- Request to DispacherServlet(the front controller)
+				- HandlerMapping
+				- Model and logical view name
+					- Controller (return to DispacherServlet)
+				- ViewResolver
+				- View
+		- Setting up Spring MVC
+            - Configure the web.xml
+                The Servlet
+                <servlet>
+                    <servlet-name>spitter</servlet-name>
+                    <servlet-class>
+                        org.springframework.web.servlet.DispatcherServlet
+                    </servlet-class>
+                    <load-on-startup>1</load-on-startup>
+                </servlet>
+            
+                The Mapping
+                <servlet-mapping>
+                    <servlet-name>spitter</servlet-name>
+                    <url-pattern>/</url-pattern>  Will handle all request including request from static content.
+                </servlet-mapping>
+			- Configure the Spring Configuration (ex: project-servelt.xml)
+                <?xml version="1.0"encoding="UTF-8"?>
+                <beans xmlns="http://www.springframework.org/schema/beans"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:mvc="http://www.springframework.org/schema/mvc"
+                    xsi:schemaLocation="http://www.springframework.org/schema/mvc
+                    http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+                    http://www.springframework.org/schema/beans
+                    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+                    <mvc:resourcesmapping="/resources/**" location="/resources/"/>  Handle request for static resources
+                </beans>
+        - Writing Controller
+            - Handler Mapping - DispatcherServlet decide which controller to dispach a request to.
+                BeanNameUrlHandlerMapping
+                    Maps controlers to URL that are based on the controller's BEAN name
+                ControllerBeanNameHandlerMapping
+                    Similar than above. Names don't requires to follow URL conventions
+                ControllerClassNameHandlerMapping
+                    Maps controlers to URL that are based on the controller's CLASS name as the basis of URL
+                DefaultAnnotationHandlerMapping
+                    Maps request to controller and controller methods that are annotated with @RequestMapping
+                SimpleUrlHandlerMapping
+                    Maps controllers to URL using a property collection defined in the Spring application context.
+                
+                If no handler mapping is found, uses BeanNameUrlHandlerMapping and DefaultAnnotationHandlerMapping
+                
+            - To use DefaultAnnotationHandlerMapping, include in app-servlet.xml:
+                <mvc:annotation-driven/>    It includes:
+                    validation support
+                    message conversion
+                    field formating
+            Controller Example
+				@Controller                                <----  Declare the Controller
+				public class HomeController{
+					public static final int DEFAULT_SPITTLES_PER_PAGE=25;
+					private SpitterService spitterService;
+					@Inject						<----  Inject the bean of service
+					public HomeController(SpitterService spitterService){
+						this.spitterService=spitterService;
+					}
+					@RequestMapping({"/","/home"})	<------ Handle request for home page
+					public String showHomePage(Map<String,Object> model){  <---- Model is just a Map
+						List<Spitter> list = spitterService.getRecentSpittles(DEFAULT_SPITTLES_PER_PAGE);
+						model.put("spittles", list); <------- Data into model
+						
+						return"home";			<----  Return view name
+					}
+				}
+            	- To recognise the @Controller <context:component-scanbase-package="com.habuma.spitter.mvc"/> should be included in app-servlet.xml
+			- Testing the controller
+				public classHomeControllerTest{
+				@Test
+				public void shouldDisplayRecentSpittles(){
+					List<Spittle>expectedSpittles =	asList(newSpittle(),newSpittle(),newSpittle());
+					SpitterService spitterService= mock(SpitterService.class);
+					
+					when(spitterService.getRecentSpittles(DEFAULT_SPITTLES_PER_PAGE)).thenReturn(expectedSpittles);
+					HomeControllercontroller= new HomeController(spitterService);
+					HashMap<String,Object> model=new HashMap<String,Object>();
+					
+					String viewName=controller.showHomePage(model);
+					assertEquals("home",viewName);
+					assertSame(expectedSpittles,model.get("spittles"));
+					verify(spitterService).getRecentSpittles(DEFAULT_SPITTLES_PER_PAGE);
+				}
+			- Resolving Internal views
+				Relating to rendering output to the user.
+				Can use JSP, Velocity, FreeMarker.
+				There are many View resolver implementations
+					BeanNameViewResolver, ContentNegotiatingViewResolver, FreeMarkerViewResolver, InternalResourceViewResolver, JasperReportsViewResolver, ResourceBundleViewResolver, TilesViewResolver, UrlBasedViewResolver, VelocityLayoutViewResolver, VelocityViewResolver, XmlViewResolver
+				- InternalResolverViewResolver.
+					Convention-over-configuration approach
+					In app-servlet.xml
+						<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+							*****
+							<propertyname="prefix"value="/WEB-INF/views/"/>
+							<propertyname="suffix"value=".jsp"/>
+						</bean>
+						Configure that al JSP will be inside /WEB-INF/views folder and will have .jsp as sufix.
+					DispatchServlet ask InternalResourceViewResolver to resolv a view.
+					InternalResourceViewResolver creates a InternalResourceView(the View) which dispatches the request to the JSP for rendering.
+					If the jsp users JSTL, we should replace InternalResourceView with JstlView by setting the viewClass property inside the block above
+						***** <propertyname="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+						It exposes JSTL-specific request attributes so that we can use the internationalization
+			- Resolving tiles view
+				Templating framework for laying out of a piece of pages as fragments to make on e page.
+				Register TilesViewResourver in app-servlet.xml
+					<bean class="org.springframework.web.servlet.view.tiles2.TilesViewResolver"/>
+				View resolver attempts to find views that are Tiles templates.
+				Also add TilesConfigurer in app-servlet.xml
+				<bean class="org.springframework.web.servlet.view.tiles2.TilesConfigurer">
+					<property name="definitions">
+						<list>
+							<value>/WEB-INF/views.xml</value>     <---- Where tiles are configured
+						</list>
+					</property>
+				</bean>
+				
+				<tiles-definitions>
+					<definition name="template" template="/WEB-INF/views/main_template.jsp">
+						<put-attributename="top" value="/WEB-INF/views/tiles/spittleForm.jsp"/>
+						<put-attributename="side" value="/WEB-INF/views/tiles/signinsignup.jsp"/>
+					</definition>
+					<definition name="home" extends="template">
+						<put-attributename="content"value="/WEB-INF/views/home.jsp"/>
+					</definition>
+				</tiles-definitions>
+			- Defining a page
+				<%@ taglibprefix="c"uri="http://java.sun.com/jsp/jstl/core"%>
+				<%@ taglibprefix="s"uri="http://www.springframework.org/tags"%>
+				<%@ taglibprefix="t"uri="http://tiles.apache.org/tags-tiles"%>
+				<%@ taglibprefix="fmt"uri="http://java.sun.com/jsp/jstl/fmt"%>
+				<div>
+					<c:forEach var="spittle"items="${spittles}">
+						<s:urlvalue="/spitters/{spitterName}" var="spitter_url">
+							<s:param name="spitterName"	value="${spittle.spitter.username}"/>
+						</s:url>
+					</c:forEach>
+				</div>
+		- Handling controller input
+			How to deal with a set of parameters.
+			To link: http://localhost:8080/spitter/spittles?spitter=habuma
+			@Controller
+			@RequestMapping("/spitter")			<--- Root URL path
+			public class SpitterController{
+				private final SpitterService spitterService;
+			
+				@Inject
+				public SpitterController(SpitterService spitterService){
+					this.spitterService=spitterService;
+				}
+			
+				@RequestMapping(value="/spittles",method=GET)		<--- Handle Get Requests for /spitterSpittlers
+				public String listSpittlesForSpitter(	@RequestParam("spitter") String username, Model model){  <--- The request param
+					Spitterspitter=spitterService.getSpitter(username);
+					model.addAttribute(spitter);				<---- Fill model
+					model.addAttribute(spitterService.getSpittlesForSpitter(username));
+				
+					return "spittles/list";
+				}
+			}
+			- Model model is just likely a Map<String,Object> with some methods: addAttribute(similar to Map.put) 
+		- Processing Form
+			Two operations: 
+				Display the form 
+				Process the form submition
+			Displaying the form
+			First call the controlller
+				@RequestMapping(method=RequestMethod.GET,params="new")  <--- only handle this GET if pass the param new.
+				public String createSpitterProfile(Model model){
+					model.addAttribute(new Spitter());   <---- Create a empty object
+					return "spitters/edit"; 			<---- Forward to a page
+				}
+			ex of call:
+				http://localhost:8080/Spitter/spitters?new
+			- Defining the form view
+				Tiles template
+					<definitionname="spitters/edit"extends="template">
+						<put-attributename="content" value="/WEB-INF/views/spitters/edit.jsp"/>
+					</definition>
+				- Write the jsp
+			- Processing the Form - How to handle the form
+				@RequestMapping(method=RequestMethod.POST)
+				public String addSpitterFromForm(@ValidSpitter spitter, BindingResult bindingResult){
+					if(bindingResult.hasErrors()){			<--- Check validation
+						return"spitters/edit";
+					}
+					spitterService.saveSpitter(spitter);   <---- Call the service to save object
+					return "redirect:/spitters/"+spitter.getUsername();  <--- Redirect to a specific page
+				}
+			- Handling requests with path variable
+				- http://localhost:8080/Spitter//spitters/{username} 
+				@RequestMapping(value="/{username}",method=RequestMethod.GET)   <------  value indicates how the link should be called
+				public String showSpitterProfile(@PathVariable String username, Model model){   <----  username again indicating the path{username}
+					model.addAttribute(spitterService.getSpitter(username));
+					return "spitters/view";
+				}
+			- Validating Input
+				Use @Valid annotation
+			- Show errors in JSP
+				<%@ taglibprefix="sf"uri="http://www.springframework.org/tags/form"%>
+				<sf:errors path="fullName"cssClass="error"/>
+			<%@ taglibprefix="sf"uri="http://www.springframework.org/tags/form"%>
+				<sf:form method="POST"modelAttribute="spitter" enctype="multipart/form-data">
+					<fieldset>
+						<th><sf:label path="fullName">Fullname:</sf:label></th>
+						<td><sf:input path="fullName"size="15"/><br/>
+						<sf:errors path="fullName"cssClass="error"/>
+				
+						<th><sf:label path="username">Username:</sf:label></th>
+						<td><sf:input path="username"size="15"maxlength="15"/>
+						<small id="username_msg">Nospaces,please.</small><br/>
+						<sf:errors path="username"cssClass="error"/>
+					</fieldset>
+				</sf:form>
+		Upload File
+			<sf:form method="POST" modelAttribute="spitter" enctype="multipart/form-data">
+			multipart/form-data makes each field be submitted as a distinct part of the POST
+			<tr>
+				<th><labelfor="image">Profileimage:</label></th>
+				<td><inputname="image"type="file"/>
+			</tr>
+			Receiving the file
+				@RequestMapping(method=RequestMethod.POST)
+				public String addSpitterFromForm(@Valid Spitter spitter, Binding Result bindingResult,
+												@RequestParam(value="image",required=false)	MultipartFile image){
+					if(bindingResult.hasErrors()){
+						return"spitters/edit";
+					}
+					spitterService.saveSpitter(spitter);
+					try {
+						if(!image.isEmpty()){
+							validateImage(image);
+							saveImage(spitter.getId()+".jpg",image);//
+						}
+					} catch(ImageUploadExceptione){
+						bindingResult.reject(e.getMessage());
+						return"spitters/edit";
+					}
+					return "redirect:/spitters/"+spitter.getUsername();
+				}
+				private void validateImage(MultipartFile image){
+					if(!image.getContentType().equals("image/jpeg")){  <--- To guarantee that the file is a jpeg
+					thrownew ImageUploadException("OnlyJPGimagesaccepted");
+					}
+				}
+			To upload file, spring should be configured
+				<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
+					p:maxUploadSize="500000"/>
+				DispatcherServlet will look for multipartResolver id.  DispatcherServlet doesn't know how to deal with multipart form data. 
+	- Spring MVC + Jquery + AJAX
+		- Maven 
+			jackson <---  Responsible for marshall to JSON
+		- in dispatcher-servlet.xml
+			<context:component-scan base-package "br.com.packageRoma"/>   <---- Defines which package to look for annotations
+			<mvc:annotation-driven>				<--- Shows Spring to use annotation
+			
+		- Controller 
+			public class TestController { 
+				@RequestMapping(value="/action.htm",method=RequestMethod.POST)
+				public @ResponseBody Test method(HttpServletRequest request, HttpServletResponse response) throws Exception 
+				{ 
+					Test test = new Test()
+					return test;		<----  Jackson do the marshall to JSON
+				}
+			}
+			
+			or 
+			public @ResponseBody User addUser(@ModelAttribute(value="user") User user, BindingResult result ){
+				String text;
+				if(!result.hasErrors()){
+					userList.add(user);
+					text = "User inserted";
+				}else{	
+					text = "Couldn't insert user";
+				}
+				return user;
+			}
+
+		- The jsp
+			<script type="text/javascript" language="javascript" src="URL/jquery"></script>
+			<script type="text/javascript">
+				function testCallAjax(){
+					$.ajax({
+						type: "post",
+						url: "http://localhost:8080/TestSpring/test/test.htm",
+						cache: false,				
+						data:'firstName=' + $("#firstName").val() + "&lastName=" + $("#lastName").val() + "&email=" + $("#email").val(),
+						success: function(response){
+							$('#result').html("");  <---  Clean the div that will be renderized
+							var obj = JSON.parse(response);
+							$('#result').html("First Name:- " + obj.firstName +"</br>Last Name:- " + obj.lastName);
+						},
+						error: function(){						
+							alert('Error while request..');
+						}
+					});
+				}
+			</script>
+			....
+			<form name="testForm" method="post">	
+				<table>
+					<tr><td><input type="text" name="firstName" id="firstName" value=""></td></tr>
+					<tr><td><input type="text" name="lastName" id="lastName" value=""></td></tr>
+					<tr><td ><input type="button" value="Ajax Submit" onclick="testCallAjax();"></td></tr>
+				</table>
+			</form>
+			<div id="result"></div>  <-----  div that will be renderized.
+	- Spring Web Flow
+		Framework that enables development of elements following a prescribed flow.
+		It separes the definition of an applications's flow from the classes and views that implement the flow's behavior.
+		- Install (maven)
+			<dependency>
+				<groupId>org.springframework.webflow</groupId>
+				<artifactId>spring-webflow</artifactId>
+				<version>2.3.2.RELEASE</version>
+			</dependency>
+    - Spring Security
+		Provide declarative security for Spring-based applications using filters.
+		Handle authentication and authorization from two angles
+			- web request level and restrict access at the URL
+			- method invocatino level using Spring AOP(proxying objects and applying advice that ensures that the user has authority to invoke a method)
+		- Install using Maven.  Very easy
+		- Configuration
+			Basic configuration of spring-security.xml
+			<beans:beans xmlns="http://www.springframework.org/schema/security"
+				xmlns:beans="http://www.springframework.org/schema/beans" 
+				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				xsi:schemaLocation="http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+				http://www.springframework.org/schema/security
+				http://www.springframework.org/schema/security/spring-security-3.0.3.xsd">
+			</beans:beans>
+		- Securing web request
+			DelegatingFilterProxy(Servlet Context)  --Delegates to --> Spring-Injected filter(Spring Application Context).
+			- Performed using filters
+				Spring security looks for a bean called springSecurityFilterChain
+				in web.xml
+				<filter>
+					<filter-name>springSecurityFilterChain</filter-name>   <--- this class delegates to a filter resgistered as a bean
+					<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+				</filter>
+				
+				<filter-mapping>
+					<filter-name>springSecurityFilterChain</filter-name>
+					<url-pattern>/*</url-pattern>
+				</filter-mapping>
+			- Configure app-spring.xml
+				- http://localhost:8080/Spitter/spring_security_login.
+					Configure to Spring security intercept all URL (/**) and restrict access only to ROLE_TEST
+					<http auto-config="true" >  
+						<form-login/>		|
+						<http-basic/>		| <--- Uses a default login page.
+						<logout/>			|
+						<intercept-url pattern="/**"access="ROLE_TEST"/>    <---- interceptor to url
+					</http>
+					
+					<context-param>
+						<param-name>contextConfigLocation</param-name>
+						<param-value>
+							/WEB-INF/test-servlet.xml
+							/WEB-INF/spring-security.xml
+						</param-value>
+					</context-param>
+
+					HTML - generated by Spring security
+					<body onload='document.f.j_username.focus();'>
+					<form name='f'method='POST' action='/Spitter/j_spring_security_check'>
+						<input type='text'name='j_username'value=''>
+						<input type='password'name='j_password'/>
+						<inputname="submit"type="submit"/>
+						<inputname="reset"type="reset"/>
+					</form>
+					
+			- To define a specific page
+				<form-loginlogin-processing-url="/static/j_spring_security_check"
+					login-page="/login"
+					authentication-failure-url="/login?login_error=t"/>
+			
+				HTML
+				<%@ taglibprefix="s"uri="http://www.springframework.org/tags"%>
+				<div>
+					<spring:urlvar="authUrl" value="/static/j_spring_security_check"/>  <-- Authentication filter path
+					<form method="post"class="signin"action="${authUrl}">
+						<inputid="username_or_email" name="j_username" type="text" />
+						<inputid="password" name="j_password" type="password" />
+						<small><a href="/account/resend_password">Forgot?</a></small>
+						<inputid="remember_me" name="_spring_security_remember_me" type="checkbox"/>
+						<td><inputname="commit"type="submit"value="SignIn"/></td>
+					</form>
+					<scripttype="text/javascript">
+						document.getElementById('username_or_email').focus();
+					</script>
+				</div>
+			
+				Most important are j_username and j_password.
+			- logout
+				<logout logout-url="/static/j_spring_security_logout"/>
+			- Intercepting requests
+				First line of defense in the request-level security.
+				<intercept-urlpattern="/**"access="ROLE_USER"/>  <--- All request is allowed to ROLE_USER
+				<intercept-urlpattern="/admin/**"access="ROLE_ADMIN"/> /admin/** allowed to ROLE_ADMIN
+				Rule are top to bottom.  Than order of declarations is important
+			- Securing using Spring Expression (SpEL)
+				To enable:
+				<http auto-config="true"use-expressions="true">
+					...
+				</http>
+				<intercept-urlpattern="/admin/**"access="hasRole('ROLE_ADMIN')"/>  <--- hasRole if user has granted the ROLE_ADMIN
+				
+				Security Expressions
+					authentication, denyAll, hasAnyRole(LIST), hasRole, hasIpAddress(IP Address), isAnonimous(), isAuthenticated() ,
+					isFullyAuthenticated(), isRememberMe(), permitAll, principal
+				Ex:
+					<intercept-urlpattern="/admin/**"  access="hasRole('ROLE_ADMIN') and hasIpAddress('192.168.1.2')"/>
+			- Forcing request to HTTPS
+				- Sure.  Sensitive information should be passed encrypted over HTTPS
+				<intercept-urlpattern="/project/form"requires-channel="https"/>  <--- Redirect automatically to a https channel
+				
+				<intercept-urlpattern="/home"requires-channel="http"/>
+			- Example
+				<http auto-config="true"  use-expressions="true">
+					<intercept-url pattern="/login" access="permitAll" />
+					<intercept-url pattern="/logout" access="permitAll" />
+					<intercept-url pattern="/accessdenied" access="permitAll" />
+					<intercept-url pattern="/**" access="hasRole('ROLE_USER')" />
+					<form-login login-page="/login" default-target-url="/list" authentication-failure-url="/accessdenied" />
+					<logout logout-success-url="/logout" />
+				</http>
+			- Securing view-level elements
+				Securing in view layer.
+				<%@ taglibprefix="security" uri="http://www.springframework.org/security/tags"%>
+				Elements:
+					- <security:accesscontrollist> : allow the body of this tag to be rendered if the current authenticated user has permition
+
+					- <security:authorize> : Allows the body of this tag to be rendered if a meet a specific security constraint
+						<security:authorizeaccess="hasRole('ROLE_SPITTER')">
+							Render something
+						</security:authorize>
+						or
+						<security:authorize access="isAuthenticated() and principal.username=='habuma'">
+							<a href="/admin">Administration</a>
+						</security:authorize>
+						Other parameters
+							- access
+							- url: The the url is allowad to some user
+							- ifAllGranted
+							- ifAnyGranted
+							- ifNotGranted
+					- <security:authentication> : Accesses properties of the current user's authentication object
+						Hello <security:authentication property="principal.username"/>  
+						<security:authentication property="principal.username" var="loginId"/>
+							Access the prop of principal(object).
+					
+						Can use: authorities(collection of GrandAuthorities), credentials(ex:password), details(additional info like IP, session ID), principal(principal's user)
+		- Authenticating Users
+			Spring supports authenticating using, but you can implements your own
+				- In-memory, JDBC-based, LDAP-based user repositories, OpenID decentralized user identity systems, X509 certificates, JASS-based providers
+			- In-memory user repository
+				configure in spring-security.xml.  Hard coded
+					<user-serviceid="userService">
+						<user name="habuma"password="letmein" authorities="ROLE_SPITTER,ROLE_ADMIN"/>
+						<user name="twoqubed"password="longhorns" authorities="ROLE_SPITTER"/>
+						<user name="admin"password="admin" authorities="ROLE_ADMIN"/>
+					</user-service>
+					<security:authentication-manager>   						<-- Registers the authentication manager(instance of ProviderManager)
+						<authentication-provider user-service-ref="userService"/>
+					</security:authentication-manager>					
+			- Using DataBase(JDBC)
+				wires jdbc-user-service into <authentication-provider>'s user-service-ref, like above
+				<jdbc-user-service id="userService" data-source-ref="dataSource"/>
+				This objects uses this to get information: select username,password,enabled from users where username=?
+				to look up authorities: select username,authority from authorities where username=?
+				
+				Whole example changing the database:
+				<jdbc-user-service id="userService" 
+					data-source-ref="dataSource"     <---- Reference to the dataSource
+					users-by-username-query="select username,password,true from testTable where username=?" <-- to select user
+					authorities-by-username-query="select username, authority from testTable where username=?"/> <-- Get Authorities
+					If we dont have authorities your can replace "authority" by 'ROLE_TEST'
+		- Securing Method-level
+			Is packed in <global-method-security>
+			ex: <global-method-security secured-annotations="enabled"/>
+			Four Ways:
+				- method annotated @Secured
+					@Secured("ROLE_USER", "ROLE_ADMIN")
+					public void addSpittle(Spittle spittle){
+					// ...
+					}
+				
+				- Method annotated with JSR-250 - @RollesAllowed
+					Used identically as @Secured.  Difference is that @RollesAllowed is standard java
+					- <global-method-securityjsr250-annotations="enabled"/>
+					
+				- Method annotated with Spring's pre and post invocation
+					- Uses SpEL.  More powerful than previous.
+					- <global-method-securitypre-post-annotations="enabled"/>
+					- Annotations
+						@PreAuthorize Restricts access to a method before invocation based on the result of evaluating an expression
+							@PreAuthorize("(hasRole('ROLE_USER')and#spittle.text.length()<=140) or hasRole('ROLE_PREMIUM')")
+							public void add Spittle(Spittle spittle){
+								// ...
+							}
+						@PostAuthorize Allows a method to be invoked, but throws a security exception if the expression evaluates to false
+							@PostAuthorize("returnObject.spitter.username==principal.username")
+							public Spittle getSpittleById(longid){
+								// ...
+							}
+						@PreFilter Allows a method to be invoked, but filters input prior to entering the method
+							@PreAuthorize("hasRole('ROLE_SPITTER)")
+							@PostFilter("filterObject.spitter.username==principal.name")
+							public List<Spittle>getABunchOfSpittles(){
+							...
+							}
+						@PostFilter Allows a method to be invoked, but filters the results of that method per an expression
+				- Method matching some explicity declared pointcuts
+	- Remote services
+		Exposing bean as RMI
+			RmiServiceExporter.
+		HTTP Solution
+			Client and server should be spring
+			Exposing bean as HTTP services
+				<bean class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter"
+					p:service-ref="spitterService"
+					p:serviceInterface="com.habuma.spitter.service.SpitterService"/>
+					
+					--Request--> Dispatcher Servlet --dispatches to-->HttpInvokerExporter ----> ServiceImpl
+				- Set the URL Mapping(
+					in web.xml
+						<servlet-mapping>
+							<servlet-name>spitter</servlet-name>
+							<url-pattern>*.service</url-pattern>
+						</servlet-mapping>
+					in app-spring.xml
+						<bean id="urlMapping"class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+							<property name="mappings">
+								<value>
+									/spitter.service=httpInvokerSpitterService  <--- Service available at /spitter.service
+								</value>
+							</property>
+						</bean>			
+			Accessing HTTP services
+				Client should configure the bean
+				<bean id="spitterService"class="org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean" <-Proxy to client
+					p:serviceUrl="http://localhost:8080/Spitter/spitter.service"
+					p:serviceInterface="com.habuma.spitter.service.SpitterService"/>
+		- Web Services
+			- JAX-WS
+			- Autowiring JAX-WS endpoints
+				SpringBeanAutowiringSupport is good when the lifecicle of the object inside the service is not managed by Spring
+				@WebService(serviceName="SpitterService")
+				public class Spitter ServiceEndpoint extends SpringBeanAutowiringSupport{  <--Extend and insert annotation.
+					@Autowired
+					SpitterService spitterService;
+				
+					@WebMethod
+					public void addSpittle(Spittlespittle){
+						spitterService.saveSpittle(spittle);
+					}
+				}
+			- Exporting Standalone JAX-WS endpoints
+				SimpleJaxWsServiceExporter, good to export Spring-Managed beans as a JAX-WS endpoints.
+				Just need the definition
+					<bean class="org.springframework.remoting.jaxws.SimpleJaxWsServiceExporter"/>
+					And Spring Application Context will look for the annotation @WebService.  Then it is published as JAX-WS in
+						http://localhost:8080/{ServiceName}
+				@Component
+				@WebService(serviceName="SpitterService")
+				public class SpitterServiceEndpoint{
+					@Autowired
+					SpitterService spitterService;
+					@WebMethod
+					public void addSpittle(Spittle spittle){
+						spitterService.saveSpittle(spittle);
+					}
+				}
+				
+				But it is possible to change the base of the address:
+					<bean class="org.springframework.remoting.jaxws.SimpleJaxWsServiceExporter"
+						p:baseAddress="http://localhost:8888/services/"/>
+						
+			- Client
+				<bean id="spitterService" 
+					class="org.springframework.remoting.jaxws.JaxWsPortProxyFactoryBean"
+					p:wsdlDocumentUrl="http://localhost:8080/services/SpitterService?wsdl"
+					p:serviceName="spitterService"
+					p:portName="spitterServiceHttpPort"
+					p:serviceInterface="com.habuma.spitter.service.SpitterService"
+					p:namespaceUri="http://spitter.com"/>
+	- Rest (Representational State Transfer)
+		Rest is resource-oriented.  Emphasizes the things and nouns that describe an application.
+		- Introduction
+			Representational: Rest resources can be represented on virtually any form(XML, JSON, HTML, etc)
+			State: We are more concerned with the state of a resource than with the actions we can take against resource
+			Transfer: REST involves transferring resource data, in soem representational form between applications.
+			In other words:
+				REST is about transferring the state of resources in any form from a server to a client.
+			For this reason, we should say: RESTful resources.
+		REST vs SOAP Web Services
+			Rest: 
+				Lightweight – sem muito extra xml markupt	, Resultados lidos por humanos, Fácil para construir.  Sem necessidade de toolkits.
+				A enfase é na comunicação ponto a ponto por HTTP
+				Mais baseada no design web-based.  Possui falta de padrões de suporte a segurança, política, confiabilidade no envio de mensagem.
+			Soap
+				Fácil consumo, rígido na checagem de tipo, lida com erros,  possui ferramentas de desenvolvimento.
+				É um protocolo para computação distribuida XML-based.	
+			
+		Rest with Spring
+			- Controllers can handle all HTTP methods: GET, PUT, DELETE, POSR
+			- @PathVariable annotation enables controllers to handle requests for parametrized URLs
+			- <form:form> with HiddenHttpMethodFilter, make it possible to submit PUT and DELETE from HTML forms
+			- Resources can be representes in XML, JSON, Atom, RSS, etc
+			- @ResponseBody annotation and other HttpMethodConverter implementation for rendering amd marshall
+			- RestTemplate simplifies client-side consumption of REST resources.
+		Writing Controllers
+			- Restless
+				@Controller
+				@RequestMapping("/displaySpittle.htm")
+				public class DisplaySpittleController{
+					@RequestMapping(method=RequestMethod.GET)
+						public String showSpittle(@RequestParam("id")longid,Modelmodel){
+							model.addAttribute(spitterService.getSpittleById(id));
+							return"spittles/view";
+					}
+				}
+				Ex of call:
+					http://localhost:8080/Spitter/display/displaySpittle.htm?id=123
+			- RESTFUL
+				- Principle: No two resource could share the same URL.  The path is parameterized.
+				- No query parameters and tend to be hierarchical.
+				Ex of call:
+					http://localhost:8080/Spitter/splitters/123
+					
+					@Controller
+					@RequestMapping("/spittles")
+					public class SpittleController{
+						private SpitterService spitterService;
+						
+						@Inject
+						public SpittleController(SpitterService spitterService){
+							this.spitterService=spitterService;
+						}
+						@RequestMapping(value="/{id}", method=RequestMethod.GET)
+						public StringgetSpittle(@PathVariable("id")longid,	Model model){
+							model.addAttribute(spitterService.getSpittleById(id));
+							return"spittles/view";
+						}
+					}
+			- Verbs
+				POST: Post data to the server to be handled by a processor. Usually create a new resource
+					@RequestMapping(method=RequestMethod.POST)
+					@ResponseStatus(HttpStatus.CREATED) //201= created
+					public @ResponseBody Spittle createSpittle(@Valid Spittle spittle,
+									BindingResult result,HttpServletResponse response) throws BindException{
+						if(result.hasErrors()){
+							thrownewBindException(result);
+						}
+						spitterService.saveSpittle(spittle);
+						response.setHeader("Location","/spittles/"+spittle.getId()); <---  Set resource location 
+						return spittle;
+					}
+					- POST operates against a URL that doesn't exist yet, because the resource is new.
+				GET: Retrieve information(list, or just name of element)
+				PUT: Update and save a data
+					@RequestMapping(value="/{id}",method=RequestMethod.PUT)
+					@ResponseStatus(HttpStatus.NO_CONTENT)	//Status should be se to 204<---- To let the client know if the process was successful
+					public void putSpittle(@PathVariable("id")longid, @Valid Spittlespittle){
+						spitterService.saveSpittle(spittle);
+					}
+				DELETE: Delete a data
+					@RequestMapping(value="/{id}",method=RequestMethod.DELETE)
+					@ResponseStatus(HttpStatus.NO_CONTENT)					<---- To let the client know if the process was successful
+					public voiddeleteSpittle(@PathVariable("id")longid){
+						spitterService.deleteSpittle(id);
+					}
+				OPTIONS: Request avaiable options for communication with the server.
+				HEAD: Like Get, but a head should be returned
+				TRACE: Echoes the request body back to the client.
+		- HTTP message converter
+			@ResponseBody: Tells spring to return a object as a resource to client.
+			- If use Jackson the object returned from the handler method will be given to the MappingJacksonHttpMessageConverter for conversion into JSON
+			to the client.
+		- Writing REST clients / RestTemplates
+			Methods to interact with REST resouruces 
+			Ex GET:
+				public Spittle[]retrieveSpittlesForSpitter(String username){
+					return new RestTemplate().getForObject(
+						"http://localhost:8080/Spitter/spitters/{spitter}/spittles", Spittle[].class,username); // {spitter} <--- username
+				}
+				or
+				public Spittle[]retrieveSpittlesForSpitter(Stringusername){
+					Map<String,String>urlVariables=newHashMap<String,String();
+					urlVariables.put("spitter",username);
+					
+					return new RestTemplate().getForObject(
+						"http://localhost:8080/Spitter/spitters/{spitter}/spittles",Spittle[].class, urlVariables);
+				}
+			PUT
+				public voidupdateSpittle(Spittlespittle) throws URISyntaxExceptione{
+					Stringurl="http://localhost:8080/Spitter/spittles/"+spittle.getId();
+					new RestTemplate().put(newURI(url),spittle);
+				}
+				OR
+				public voidupdateSpittle(Spittlespittle)throwsSpitterException{
+					restTemplate.put("http://localhost:8080/Spitter/spittles/{id}", spittle, spittle.getId());
+				}
+			DELETE
+				public void deleteSpittle(longid){
+					restTemplate.delete("http://localhost:8080/Spitter/spittles/{id}",id));
+				}
+			POST 
+				public Spitter postSpitterForObject(Spitterspitter){
+					RestTemplate rest = new RestTemplate();
+					return rest.postForObject("http://localhost:8080/Spitter/spitters",	spitter, Spitter.class);
+					}
+				}
+				Or
+				RestTemplate rest=new RestTemplate();
+				ResponseEntity<Spitter>response = rest.postForEntity("http://localhost:8080/Spitter/spitters",spitter,Spitter.class);
+				Spitter spitter=response.getBody();   <---- Body of Response returns Spitter
+				URI url=response.getHeaders().getLocation();
+		- Writing <sf:form>
+			To be used in PUT and DELETE
+			<sf:form method="delete"modelAttribute="spitter">
+				...
+			</sf:form>
+			result:
+				<form method="post"> 
+					<input type="hidden"name="_method"value="delete"/>
+						...
+				</form>
+	- Messaging in Spring(JMS)
+		- Relating to asynchronous messaging
+		- Use ActiveMQ (with maven)
+		- create connection factory
+			<bean id="connectionFactory"      <----  To send message through message broker.
+					class="org.apache.activemq.spring.ActiveMQConnectionFactory">
+				<property name="brokerURL"value="tcp://localhost:61616"/>
+			</bean>
+			OR
+			xmlns:amq="http://activemq.apache.org/schema/core"
+						xsi:schemaLocation="http://activemq.apache.org/schema/core
+						http://activemq.apache.org/schema/core/activemq-core-5.5.0.xsd
+					...
+			<amq:connectionFactoryid="connectionFactory"
+				brokerURL="tcp://localhost:61616"/>
+		- Declaring an ActiveMQ message destination
+			Can be a queue
+				<bean id="queue" class="org.apache.activemq.command.ActiveMQQueue">
+					<constructor-argvalue="spitter.queue"/>				<------ Specific the name of the queue
+				</bean>
+				or
+				<amq:queueid="queue"physicalName="spitter.queue"/>
+			or a topic
+				<bean id="topic"class="org.apache.activemq.command.ActiveMQTopic">
+					<constructor-argvalue="spitter.topic"/>				<------ Specific the name of the topic
+				</bean>
+				or 
+				<amq:topicid="topic"physicalName="spitter.topic"/>
+		- Using Spring JMS Template
+			JmsTemplace is the center of the Spring JMS engine.  Avoid the verbose and repetitive JMS code.
+			It creates a connection, obtains a session, sends and receives messages.
+			Wiring a JMS template
+				<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+					<property name="connectionFactory"ref="connectionFactory"/>  <--- Reference to the connectionFactory
+				</bean>
+			Sending Messages
+				- Create a interface with some information
+					public interface AlertService{
+						void sendSpittleAlert(Spittle spittle);
+					}
+				- Create a implementation that uses JmsTemplate to send a object to a message queue
+					public class AlertServiceImpl implements AlertService{
+						public void sendSpittleAlert(final Spittle spittle){
+							jmsTemplate.send(			<--- Send Message
+								"spittle.alert.queue",		<---Destination
+								new MessageCreator(){
+									public Message createMessage(Sessionsession) throws JMSException{
+										return session.createObjectMessage(spittle);	<--- Create the message
+									}
+								}
+							);
+						}
+						@Autowired
+						JmsTemplate jmsTemplate;  <---- Inject JMS template
+					}
+			- It is possible to define a default destination.  Then it is not necessary to pass the destination when sending messages
+				<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+					<property name="connectionFactory"ref="connectionFactory"/>
+					<property name="defaultDestinationName" value="spittle.alert.queue"/>
+				</bean>
+				And just call
+				jmsTemplate.send(
+					new MessageCreator(){
+						...
+					}
+				);
+			- Consuming a Message
+				public SpittlegetAlert(){
+					try {
+						ObjectMessage receivedMessage= (ObjectMessage) jmsTemplate.receive();   <--- Receive the message
+						return(Spittle)receivedMessage.getObject();	<--- Get the object
+					} catch(JMSExceptionjmsException){
+						throw JmsUtils.convertJmsAccessException(jmsException);
+					}
+				}
+		- Message Driven Bean using POJO
+			@MessageDriven(mappedName="jms/spittle.alert.queue")   <---- Name of queue
+			public class SpittleAlertHandler implements MessageListener{
+				@Resource
+				private MessageDrivenContext mdc;
+				public void onMessage(Message message){
+				...
+				}
+			}
+			- Using just POJO
+				public classSpittleAlertHandler{
+					public voidprocessSpittle(Spittlespittle){
+						// ...implementationgoeshere...
+					}
+				}
+				Declaration
+					<bean id="spittleHandler" class="com.habuma.spitter.alerts.SpittleAlertHandler"/>
+					
+					<jms:listener-container connection-factory="connectionFactory">
+						<jms:listener destination="spitter.alert.queue" ref="spittleHandler"method="processSpittle"/>
+					</jms:listener-container>
+			
+	- Spring Beans with JMX(Java Management Extension)
+		Technology that enables you to create elements of management, monitoring and configuration of applications.
+		- Remoting MBeans
+			JMX  é a tecnologia(API) que permite implementar “management interfaces” ou seja gerenciar aplicações Java. 
+			•	Abstrai a o trabalho de gerencia de informação para uma interface comum para facilitar o gerenciamento integrado.
+			•	Distribui o gerenciamento movendo as funções de gerenciamento para os agentes.
+			•	Deploy real-time de serviços e modificações
+			•	Possibilidade de uso para gerenciar qualquer aplicação ou device ((via JNI or SNMP etc..)
+
+		Key component-> MBean(Managed bean).
+			MBean is a JavaBean that exposes certain methods which define the management interface.
+		Four types of MBeans
+			Standard MBeans: Management interface is determined by reflection on a fixed Java interface that is implemented by the bean class.
+			Dynamic MBean: Management interface is determined at runtime by invoking methods of the DynamicMBean interface.
+			Open MBeans: Special kind of dynamic MBean. attributes and operations are limited to private elements(types, class wrappers)
+			Model MBean: Special kind of dynamic MBean.  Bridges a management interface to the managed resource.
+		Exporting Spring beans as MBeans
+			Ex of changing a value of a attribute in a Controller
+				class TestController {
+					...
+					private int intValue = 10;
+					public void setIntValue(int value) {
+						intValue = value;
+					}
+					publid int getIntValue() { return intValue;}
+				}
+				TestController can be exposed as an MBean.
+				<bean id="mbeanExporter" 			<---  Is the bean that exports Spring-managed beans as Model MBeans in the MBeanServer(container)
+					class="org.springframework.jmx.export.MBeanExporter">
+					<property name="beans">
+						<map>
+							<entry key="beanTest:name=TestController" value-ref="testController"/>
+						</map>
+					</property>
+					<property name="server"ref="mbeanServer"/>
+					<property name="assembler"ref="assembler"/>		<---- Expose the methods
+				</bean>
+				- After this, JConsole or VisualVM can view the bean's properties and invoke their methods.
+			- Exposing methods by name
+				<bean id="assembler" 
+					class="org.springframework.jmx.export.assembler.MethodNameBasedMBeanInfoAssembler"
+					p:managedMethods="getSpittlesPerPage,setSpittlesPerPage"/>
+				or 
+				<bean id="assembler" class="org.springframework.jmx.export.assembler.MethodExclusionMBeanInfoAssembler"
+					p:ignoredMethods="showHomePage"/>
+		- Beans with annotations
+			In app-spring.xml
+				<context:mbean-export server="mbeanServer"/>
+				
+				User @ManagedResource, @ManagedOperation, @ManagedAttribute
+				
+				@Controller
+				@ManagedResource(objectName="testObject:name=TestController")//
+				public class TestController{
+					...
+					@ManagedAttribute//
+					public void setSpittlesPerPage(int spittlesPerPage){
+						this.spittlesPerPage=spittlesPerPage;
+					}
+					@ManagedAttribute//
+						public int getSpittlesPerPage(){
+							return spittlesPerPage;
+						}
+				}
+	
+		- Mbean Server
+			É o core do agente.  Ele provê um registo para os Mbeans.
+			Permite que os clientes descubram e executem operações expostar pelos Mbeans.
+			Disponibiliza vários serviços para facilitar a gerência (ex: monitoramento, escalonamento, etc)
+			Usa “ObjectName” class para registrar os objetos com o MBeanServer 
+
+			Lida com os recursos como MBeans
+			suporte Mbean para “managed bean”
+			MBeans podem representar um device físico ou uma aplicação.
+			Usuário decide quais atributos e métodos ele deseja expor para gerenciamento.
+			Usa design patters similares aos JavaBeans
+			MBeans são expostos em um agente.
+
+		- Java Management Extensions Remote API
+			To make MBeans available as remote objects:
+				<bean class="org.springframework.jmx.support.ConnectorServerFactoryBean"/>
+				Default: service:jmx:jmxmp://localhost:9875.
+			There are other remoting protocol options rather than JMXMP, including RMI, SOAP, IIOP.
+			To specify a diferent protocol:
+				<bean class="org.springframework.jmx.support.ConnectorServerFactoryBean"
+						p:serviceUrl="service:jmx:rmi://localhost/jndi/rmi://localhost:1099/spitter"/>
+			Accessing remote MBeans
+				JMX Remote API
+					Adiciona capacidade remota para a especificação JMX
+					Faz o agente JMX acessível fora da JVM.
+					Suporte padrão via RMI
+					Suporte opcional via TCP Sockets (JMXMP)
+					Suporta serviços de discovery/lookup e define segurança entre cliente e servidor
+					Assim como com código RMI, deve lidar com exceções de comunicação
+				Configure MBeanServerConnectionFactoryBean in app-spring.xml
+					Factory to create MBeanServerConnection.
+					<bean id="mBeanServerClient"class="org.springframework.jmx.support.MBeanServerConnectionFactoryBean"
+						p:serviceUrl="service:jmx:rmi://localhost/jndi/rmi://localhost:1099/spitter"/>
+				MBeanServerConnection
+					Local proxy to the remote MBean server.
+					<bean id="jmxClient"class="com.springinaction.jmx.JmxClient">
+						<property name="mbeanServerConnection"ref="mBeanServerClient"/>
+					</bean>
+				Using the bean
+					int mbeanCount=mbeanServerConnection.getMBeanCount();
+					System.out.println("Thereare"+mbeanCount+"MBeans");
+					
+					mbeanServerConnection.invoke(new ObjectName("spitter:name=HomeController"),
+							"setSpittlesPerPage",
+							new Object[]{100},
+							new String[]{"int"});
+		- Handging notifications
+				
+	- Spring Integration
+
+
+
+

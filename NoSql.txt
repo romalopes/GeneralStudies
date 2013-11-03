@@ -1,0 +1,59 @@
+NoSql
+----------------------------------------------------------------------------
+ ->less funcionality more performance
+	Good video by Matin Fowler
+		http://www.youtube.com/watch?v=qI_g07C_Q5I
+	Principles
+		Scalability
+		Performance
+		High Availability
+	Colections
+		Data structured and not.
+	Types of NoSql DataBases - Different Data Models
+		Key Value Store (Redis, riak)	
+			- Most simple - Simple hashmap persisted in a disk
+			- Has a metadata
+		Document Oriented (MongoDB, Couch DB, ravenDB )
+			- Hole mass of document structure. 
+			- Represented in form of json(can be in xml)
+			- No schema, different from Relational
+				There is an implicity schema that client should know.
+			- Always have a ID that is equivalent to a Key in the "Key value store"
+		Tabular- Column-family (BigTable(google), HBase)
+			- combination between a row key multi-colum family for each row.
+		Graph -
+			Basecaly a graph chart database.  Easy to move between nodes.  
+			No actualy relationship, but structure.
+			Arrow can be named.
+			
+		Graph (Neo4j)
+	Missing
+		No Join(to enrance scalability)
+		No Complex Transactions(change many records and commit)
+		No Constaints (implemented in app level)
+	What is in
+		Query Languare(not SQL)
+		Fast Performance
+		Horizonal Scalability
+	When to User
+		Store and retrieve great quantity of data
+		Storing relationships between the elements is not important
+		Dealing with growing list of elements(twitter post, blogs)
+		The data is not structured or the  structure is changing with time
+		Prototypes or fast applications need to be developed
+		Constraints and validations logic is not required in database
+	Questions:
+		- Why is MySql faster than MongoDB at join operations
+			Because mongoDB does not have any SIDE JOIN. Any join is done but client. Then it is slower than any SQL DB.
+		- Why MongoDB scales better in distributed systems
+			Has better repplication and share better cluster
+		- 
+	
+- Software as a Service Course
+		https://courses.edx.org/dashboard
+- BigData Course
+		https://learn.open2study.com/mod/page/view.php?id=11518
+- Web Development Course
+	https://www.udacity.com/
+	
+	

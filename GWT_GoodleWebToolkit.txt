@@ -1,0 +1,51 @@
+GWT (Goodle Web Toolkit)
+	Toolkit para criar aplicações RIA(Rich Internet Application).  Develop AJAX application in JAVA
+	Permite criar aplicações Web usando Java.  GWT compiles Java code to JavaScript
+	Easy integration with JUnit and Maven
+	If use disable javascript, he will see only a basic empty page.  
+	It is not suitable for web designers using pain HTML.
+	Look and feel of a GWT app can be customized via CSS file.  Each GWT widget is inside a HTML "div" and can have a unique CSS stile.  Can use setStyle(String s).
+	Components - Divided into three major parts
+		GWT Java to JavaScript compiler : Translate all app code written in Java into JavaScript
+		JRE Emulation Library: Include a subset of Java runtime library. ex: java.lang, annotation, math, io, sql, logging, etc.
+		GWT UI building library: Consists of many subparts which includes  UI components, RPC  support, etc.
+	Application Parts
+		Modules
+			GWT app is described as modules. A module is described as a config file modulename.gwt.xml.
+			Each module define one or more Entry point classes which is an starting pont for a GWT app(similar to main in java).
+			The module is connected to a HTML page, called "host page".  The GWT code executes within this HTML.
+			
+			<?xml version="1.0" encoding="utf-8"?>
+			<module rename-to='helloworld'>
+			   <!-- inherit the core web toolkit stuff.-->
+			   <inherits name='com.google.gwt.user.user'/>
+
+			   <!-- inherit the default gwt style sheet.-->
+			   <inherits name='com.google.gwt.user.theme.clean.Clean'/>
+
+			   <!-- specify the app entry point class.-->
+			   <entry-point class='com.tutorialspoint.client.HelloWorld'/>
+
+			   <!-- specify the paths for translatable code-->
+			   <source path='...'/>
+			   <source path='...'/>
+
+			   <!-- specify the paths for static files like html, css etc.-->
+			   <public path='...'/>
+			   <public path='...'/>
+
+			   <!-- specify the paths for external javascript files-->
+			   <script src="js-url" />
+			   <script src="js-url" />
+
+			   <!-- specify the paths for external style sheet files-->
+			   <stylesheet  src="css-url" />
+			   <stylesheet  src="css-url" />
+			</module>
+		Public resources
+			Files referenced by a GWT module, eg: Host HTML page, CSS, image.
+		Client-side code
+			It is the java code that compiler translates into JavaScript, which will run inside the browser. Configured using <source path="path" /> in module configuration file.
+			Eg, Entry Point code will be used as s client code.
+		Server-side code		
+			Optional.  Only used if you are doing backend processing in your app.

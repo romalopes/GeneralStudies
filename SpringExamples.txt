@@ -1,0 +1,36 @@
+Spring Examples
+=================
+
+- How to set up a Spring Project
+	http://spring.io/guides/gs/rest-service/#scratch
+
+- Building a RESTful Web Service
+	- Links
+		http://spring.io/understanding/REST
+		http://spring.io/guides/gs/rest-service/
+	
+	
+
+	git clone https://github.com/spring-guides/gs-rest-service.git
+	Will return
+		{
+		    "id": 1,
+		    "content": "Hello, World!" // or "content": "Hello, [NAME]"
+		}
+	- Create a POJO for model(City)
+		shortName, longName
+		goes to br.com.romalopes.springexamples.restservicecities.City
+	- Create CityController
+		method city with will be requested.
+	- Create the class Application
+		This class will run everything of spring-boot.  See comments of each annotation.
+	Spring uses Jakson JSON library to marshal a POJO to JSON.
+	Building and running
+		The project runs as a JAR.
+		 $ ./gradlew build
+		 $ java -jar build/libs/romaSpringRestServiceCities-0.1.0.jar
+		 $./gradlew clean build && java -jar build/libs/romaSpringRestServiceCities-0.1.0.jar
+		 OR to Maven
+		 $ mvn clean package && java -jar target/romaSpringRestServiceCities-0.1.0.jar
+		 $ java -jar target/romaSpringRestServiceCities-0.1.0.jar
+

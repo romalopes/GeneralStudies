@@ -1,0 +1,20 @@
+linux - Ubuntu
+==============
+
+- Linux
+	- Network Configuration
+		Ethernet Interfaces
+			Identified by the system using the naming conventionof ethX(X=a numeric value).  First ethernet interface iusually eth0, sec eth2, etc.
+			To identify interfaces
+				ifconfig -a | grep eth	
+			Helps to identify all network interfaces: sudo lshw -class network
+	- OpenSSH Server
+		Tools for the remote control of and transfer of data between networked computers.
+		OpenSSH is a version of Secure Shell(SSH) protocol of tools.
+	-  Lightweight Directory Access Protocol, or LDAP,
+		Protocol for querying and modifying a X.500-based directory service running over TCP/IP.
+	- To install programs	
+		- ubuntu software center
+		- apt-get
+https://help.ubuntu.com/12.10/serverguide/file-servers.html
+https://help.ubuntu.com/10.04/serverguide/serverguide.pdf			

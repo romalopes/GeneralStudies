@@ -1,0 +1,48 @@
+- JBoss	
+=============
+
+	Create users for each server:
+		add-user.bat
+	- Jboss Cluster
+		https://docs.jboss.org/author/display/AS71/AS7+Cluster+Howto
+		
+		Objective: 
+			- prepare two hosts, one Master and one Slave.
+			- Clustering is used to run applications on several paralled servesr(cluster nodes).
+			How it seems:
+				https://docs.jboss.org/author/download/attachments/21626956/test_scenario.jpg?version=1&modificationDate=1330278039000
+		Preparation:
+			- Install JBoss AS7
+				- make two copies
+					standalone -c standalone-ha.xml -Djboss.node.name=nodeA					
+					standalone -c standalone-ha.xml -Djboss.socket.binding.port-offset=100 -Djboss.node.name=nodeB
+			- Install Apache 2.4.3
+			- Download mod_cluster
+				http://www.jboss.org/mod_cluster/downloads/1-2-0-Final
+			- Configuring HOSTs to run in DOMAIN MODE.
+				- Master
+					JBOSS/domain/configuration/host.xml
+- 					in <interface> change the ip address from 127.0.0.1 to 10.211.55.7.
+					- bin/add-user
+						create a "master" and "slave"
+				- Slave
+					JBOSS/domain/configuration/host.xml
+						change:
+							host
+								<host name="master" xmlns="urn:jboss:domain:1.1">
+								to:
+								<host name="slave" xmlns="urn:jboss:domain:1.1">
+							change in <domain-controller>
+								from
+								</local>
+								to
+								  <remote host="10.211.55.7" port="9999" security-realm="ManagementRealm"/>
+							in <interface> change the ip address from 127.0.0.1 to 10.211.55.2.
+							- in <security-realm name="ManagementRealm"> include
+								<server-identities>
+									<secret value="MTIzNDU="/>     <--- To authentication host when slave try to connect to master.
+								</server-identities>
+								MTIzNDU= is calculated based64 by the original password 12345.  http://www.webutils.pl/index.php?idx=base64.
+	- Tuning
+	- JMS (Java Messaging Service)
+		Messages are sent to destinations(queue or topics)

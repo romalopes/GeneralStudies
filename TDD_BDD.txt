@@ -1,0 +1,89 @@
+- TDD (Test Driven Development)
+	- Intro
+		Evoloutionary approach to development which combines: test-first, fulfill the test and refactoring
+		Require great discipline from programmer 
+		Enables programmer to take small solid steps when writing software
+	- Kinds of tests
+		- Unit Tests: Test internal funcionalities with small parts to see if it is working properly
+		- System: After the development group of users start use system fucionalities to assess the behavior
+		- Integration: Tests the integration between components
+		- Sanity: Test to determine if a new software version is performing well enough to accept it for a major test effort
+		- load: User hearvy loads such as web calls
+		- Stress: System is stress and perform under heavy load, traffic, large number of storage capacity or database.
+		- Performance: Verify the performance using both stress and load tests
+		- Acceptance: End users analises whether the application fits to the requirements
+	- Philosophy
+		- Develop and implement unit tests before writing any line of code
+		- First the test must fail
+		- Code is developed after test is developed
+	- Steps  http://www.agiledata.org/images/tddSteps.jpg
+		- Add a test
+		- Run the test(must fail)
+		- Develop code
+		- Run the test
+	- Benefits
+		- Shortens the programming feedback
+		- Provides detailed (executable) specifications
+		- High-quality code
+		- Concrete evidence that your code works
+		- Prove the code works with a code
+		- Support evolutionary development
+		
+		
+- BDD (Behaviour-Driven Development)
+	BDD is an approach for building a shared understanding on what software to build by working through examples. 
+	- Introducition
+		- It is a evolution of TDD (Test Driven Development) and of Acceptance Test Driven Planing.  Focuses in collaborating with business people.
+		- Makes the relationship with TDD and DDD(Domain Driven Development)
+		- Tenta reduzir a distancia entre o Domínio e a tecnologia.  Encourage colaboration between developers and non technical areas.
+		- É baseado no exemplo
+	- Três princípios
+		- Negócio e tecnologia deveriam "falar" sobre o sistema da mesma forma
+		- Qualquer sistema deveria ter um valor identificável e verificável para o negócio
+		- Análise, design e planejamento prococe tem sempre retorno questionável
+	- Por que funciona?
+		- Vocabulário pequeno e bem definido.  Tenta minimizar ruídos tanto de TI quanto de negócios.
+		- Combina lingua nativa com uma linguagem Ubiqua.
+		- Desenvolvedores focam em "por quê" o código é criado e não em detalhes técnicos.
+		- Minimiza as traduções entre a linguagem técnica e usuário/clientes/gerentes.
+	- Práticas do BDD
+		- Envolver partes interessadas no processo através do desenvolvimento de fora pra dentro
+		- Usar exemplos para descrever o comportamento de uma aplicação ou unidade de código
+		- Automatizar so exemplos para prover um feedback rápido e testes de regressão.
+		- Usar "deve" "should" para descrever comportamentos de software pra esclarecer responsabilidades 
+		- Usar "mocks" para auxiliar na colaboração entre módulos.
+	- Processo
+		- Compete ao negócio
+			- Features 
+				- Representação em alto nível das características do sistema.  
+				- Descrição resumida dos "valores" a serem entregues(autenticação, cadastro de clientes, etc)
+			- Cenários
+				- Descrições de casos de uso. 
+				- pré-requisitos, ações, resultado esperado
+			- Passos/ Etapas
+				- Interações entre agente externo e resultado esperado para cada cenário.
+		- Compete à TI
+			- Definição das Etapas(Step definitions): Correspondências usando ferramenta de teste.
+			- Implementação efetiva do código
+			- Simulação do usuário
+		- Documentação
+			- BDD une a documentação formal feita pelo negócio com os testes que mostram que essa documentação é válida
+		- Vocabulário consistente para o negócio
+			- Cada cenário corresponde a uma lista de etapas
+			- São escritos em texto simples
+		- Example
+			1 - Identify a feature : I want to sell train ticket bookings online.
+				How build a feature: Story -> Examples -> Automated acceptance criteria.
+			2 - Understand why : To increase ticket sales
+			3 - Find examples: 
+				- Given Jane wants to take a specific train
+				- When she books a ticket online
+				- Then she should be charged $25
+			4 - Challange Assumptions
+				- Given Joe wants to take a specific train
+				- And he is has a pension card
+				- When she books a ticket online
+				- Then she should be charged $20
+				- And he should  be issued with a valid ticket
+			5 - Extend your model
+				- Assess all possible assumptions

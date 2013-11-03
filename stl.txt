@@ -1,0 +1,52 @@
+#include <list>
+#include <iostream>
+
+using namespace std;
+
+
+void includeValue(list <int> *l, int number){
+
+	list<int> l;
+	if(l->empty()){
+		l->push_back(number);
+	}else{
+		list<int>::iterator it;
+		int i = 0;
+		for(it = l->begin();it!= l->end && it->first >= number;it++,i++);
+		l->insert(l->begin+i,number);
+	}
+
+	for(it = l->begin();it!=l->end;it++){
+		cout << it->first << endl;
+	}
+
+
+}
+
+
+
+3 - O erro no código está no momento em que ao se criar um objeto da classe teste, passa-se como parâmetro a referencia a 
+um inteiro.  O metodo destrutor da classe teste, dá um delete no ponteiro _p.  Como o que foi passado foi uma referencia 
+e não um ponteiro, torna inconsistente esse comando.
+
+4 - Classe é o modelo do objeto.  Uma classe pode ser vista como a abstração de um modelo.  Os metodos publicos determinam a 
+interface da classe com o mundo externo a ela, enquanto os metodos privados são usados somente internamente a classe.
+
+5 - Polimorfismo é a capacidade de um metodo assumir varias acões diferentes dependendo do tipo de uma classe ou do seu conjunto de parâmetros. 
+ Para garantir que um método seja polimórfico em C++, é necessário que ele seja marcado como virtual. Desta forma as clases que herdarem 
+dessa super classe devem implementar o seu próprio método.
+Um exemplo simples é o metodo calcularArea, da classe Figura.  Como não sabemos como é calculada a área de uma figura geral, 
+marcamos esse método como virtual.  Desta forma todas as classes concretas que herdarem a classe Figura(ex:Quadrado, circulo, etc), 
+deverão implementar o seu próprio método calcularArea.  
+
+6 - A diferença começa a partir do paradigma da visão em que se trabalha com os dados.  
+Um sistema usa a estrutura e trabalha com os seus valores internos.  Uma classe é possui o conceito de encapsulamento muito mais forte,
+de modo que seja possível apenas utilizar suas interfaces(metodos) publicas.  
+
+7 - Uma referência equivale ao endereço do objeto ou variável, enquanto um ponteiro é uma variável que em seu conteúdo possui o endereço(ou posição de memória) da variável.
+ Desta forma, se a referencia de um objeto for modificada, o seu valor será modificado, se um ponteiro for modificado, esse ponteiro passará a apontar para outro lugar na memória.
+usamos a referencia de um objeto quando desejamos modificar o seu valor e o seu ponteiro quando desejamos além de modificar esse valor, também percorrer por várias objetos em memória.
+
+
+
+8 - Para que as suas subclasses também chamem os seus destrutores, uma vez que eles podem atributos atributos em que o seus destrutores devem tratar ou apagar(deletar).

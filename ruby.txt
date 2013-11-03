@@ -1,0 +1,249 @@
+Ruby on Rails
+===============
+
+Ruby
+	Introduction
+		Ruby is a general script and dynamic language, but is mostly known as a web language.
+		Very similar to python and groovy and C++.
+		It is possible to create classe, methods, but it is possible to develop directly in file.
+		ex: 
+			file hi.rb
+				class Test
+					 def initialize(a, b) #constructor
+      					@a, @b = a, b
+   					end
+					def hello (name="aa") 
+						array = [  "Hi", "Anderson", "PI is =", 3.14 ]
+						array.each do |i|
+								puts i
+						end
+						result = "Hi, #{name}"  
+						return 1,2,3 # a list of returns
+					end 
+				end
+				a = Test.new
+				a.hello()
+				BEGIN {
+					puts "BEGIN executes before everything"
+				}
+				END {
+   					puts "END executes at the ende of the program"
+				}
+				-call: ruby hi.rb 
+	Types
+		Ruby has: 
+			array = [ 1, "aaa"]
+				values = Array.new(4, "anderson ")
+				puts "#{values}"
+			hash = { "NYC" => 5000, "Rio" => 1908 }
+			hash.keys / hash.values
+				cars = Hash.new( "car" )
+			
+			range (1..10)
+				(1..10) === 5 		-> true
+				(1..10) === 3.14	-> true
+
+			String
+				Comparation
+					if s1 == s2
+					s1.eql?(s2)  
+					%w --> tokenizer
+			IO
+				gets
+					put "enter a value:"
+					value = get
+					puts value
+				File
+					file = File.new("filename", "mode")
+					file.close
+					File.open("filename", "mode") do |aFile|
+						end
+		Variable Types:
+			$global_variable
+			@@class_variable
+			@instance_variable
+			[OtherClass::]CONSTANT
+			local_variable
+	Classes
+		Defining a Class
+			class ClassName [< superclass ](optional) 
+			ex: class B < A
+				 def initialize(a, b) #constructor
+      					@a, @b = a, b
+   					end
+				#{self.type} 
+				#{self.name}
+		Creating instance
+			b = B.new(1,4) # calls the initialize
+			b2 = B.allocate # does not call the initializze
+		Overloading
+
+		Access
+			public,	protected and private
+		Main classes:
+			http://upload.wikimedia.org/wikipedia/commons/4/43/Ruby_data_classes.jpg
+
+		Open Classes
+	closures
+		Dynamic method that can be used/passed as variable/parameter
+		def method(a_closure)
+				a_closure.callClosure
+		end
+
+		closure1 = callClosure {
+				puts "Testing"
+		}
+		method(closure1)    # Testing
+	Exceptions
+		begin 
+			....
+			 raise 'If an error occors'  # like throws
+			 raise "Missing name" if name.nil?
+			 if name.lenght < 8
+			 	raise ArgumentError, "Short name", caller
+			 end
+		rescue SyntaxError, NameError => boom		# Specify multiple exception to be catch
+			....
+		rescue 	# Gets all types of exception
+			....
+			retry 	# run again the begin
+		else  # if it runs without exception.
+			....
+		ensure	# like finally from java
+			....
+		end
+	Goto(Catch and Throw)
+		throw :goto_name if a == 1
+			..... jump to goto_name catch
+		catch :goto_name do
+			.... execute the catch
+		end
+	Directives
+		if
+			if a < b #then is optional
+			elseif
+			else
+			end
+
+			conditions? satisfied : not_satisfied
+		loop
+			while condition do (do is optional)
+				...
+			end
+			begin 
+				....
+			end while a<b
+			until i<10 do
+				...
+			end
+			begin
+				...
+			end until i<10
+			for i in 1..10
+				if ...
+					redo or break
+				end
+				...
+			end
+			5.times do |y|  
+			  x = y  
+			  puts "value of x is: #{x}"  
+			end  
+	Modules
+		They are like a class, but can't be instantiated nor inherit. Can be included in class.  Good to group methods, classes and constants	- Provide namespace
+			- Implement mixin
+		Ex:
+			module ModuleDoSomeThing
+				ConstantA = 1111
+				def ModuleDoSomeThing.methodA      OR def methodA
+					...
+				end					
+		Load, Require and include, extend
+			load
+				The load method includes the named Ruby source file every time the method is executed:
+				Sintaxe: load 'filename.rb' 
+			require:
+				similar to "include" in C++ or "import" in Java.  It doesn't load the file.  
+				Just to use a module, rather than extend it or do a mix-in.
+				Ex: require 'filename'  
+				- in Ruby 1.9, there is require_relative
+					The locations is relative.
+			include: 
+				To embed a module in a class. Take the moethods from another module and embed them into the module.
+				It is to use INSTANCE methods
+			extend:
+				Similar to include, but to use CLASS methods.
+				Ex:
+					module Foo
+					  def foo
+					    puts 'heyyyyoooo!'
+					  end
+					end
+
+					class Bar
+					  include Foo
+					end
+
+					Bar.new.foo # heyyyyoooo!
+					Bar.foo # NoMethodError: undefined method ‘foo’ for Bar:Class
+
+					class Baz
+					  extend Foo
+					end
+
+					Baz.foo # heyyyyoooo!
+					Baz.new.foo # NoMethodError: undefined method ‘foo’ for #<Baz:0x1e708>
+			Mixin
+				Similar ao Groovy.  Multiple inheritance.  It is when a class inherit features from more than one parent class.  
+				Mixin simulate the multiple sub-classes.  A class is mixed with a module.
+				Ex:
+					module Plane
+						def fly
+							puts 'fly'
+						end
+						def initPlane
+							puts 'it is a plane'
+						end
+					end
+					module Car
+						def run
+							puts 'run'
+						end
+						def initCar
+							puts 'it is a car'
+						end
+					end
+					class Hibrid
+						include plane   # Include two modules.
+						include Car
+						def work
+							initCar()
+							initPlane()
+							run()
+							fly()
+						end
+					end
+					hib = Hibrid.new
+					hib.work
+					hib.fly
+					hib.run
+
+
+
+
+
+
+
+
+
+To be continued
+
+
+http://www.railstips.org/blog/archives/2009/05/15/include-vs-extend-in-ruby/
+http://www.tutorialspoint.com/ruby/ruby_modules.htm
+http://ruby-br.org/tutoriais/?t=4&p=7
+http://rubylearning.com/satishtalim/writing_own_ruby_methods.html
+
+http://railsapps.github.io/what-is-ruby-rails.html
+http://phrogz.net/programmingruby/frameset.html
+
