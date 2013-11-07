@@ -1,392 +1,518 @@
 Gradle - http://www.gradle.org/docs/current/userguide/userguide_single.html#overview
-	Introduction
-		- Build Automate, test, publishing, deployiment and so on.
-		- Combines the flexibility of ANT with dependency management and conventions of Maven.
-		- Uses Groovy DSL and uses a declarative way to describe the builds.
-	Features
-		Declarative builds and build-by-convention
-			Gradle uses DSL(Domain Specific Language) based on Groovy.
-		Language for dependency based programming
-			The tasks are based in a hierarchy, favoring the builds
-		Structure your build
-			Easy to compose buid from reusable pieces
-		Deep API
-			Allow to monitor and customize the configuration and behavior execution
-		Scalability
-			Reusability allows one project uses parts of other projects increasing the produtivity
-		Multi-project builds
-			You can rebuild a project or its sub-project, that depends on another sub-project.
-		Different ways to manage dependencies
-			Maven has just one way.  Can integrate with maven and ivy, or just use jars or directories.
-		Groovy
-			Insteady of XML.
 
-	To use the Gradle from github
-		git clone https://github.com/romalopes/gradle.git
-		cd gradle
-		gradle test
-		gradlew build
-		gradle assemble //to create the zip.
-		
-	To create a JAVA gradle project
-		- copy the directory Gradle to root
-			- gradle
-				wrapper
-					gradle-wrapper.jar
-					gradle-wrapper.properties
-				ide.gradle
-		- OR 
-			 gradle setupBuild  --> This command creathe the structure of gradle.
-		- Converting from Maven.  It is very simple.
-			- Create a maven project
-				- mvn archetype:generate
-				 - There are over 850 archetypes.  Use the 314(
-				 -archetype-quickstart), sugested but maven
-				 - Version of maven-archetype-quickstart: Use the sugested(1.1), number 6.
-				 - groupId: The groupId that will be inside the pom.xml. I use: br.com.romalopes.meven2Test
-				 - artifactId: mavenToGradle.  The project will be created inside this directory.
-				 - Version: Accept the sugested.
-				 - Value for property papckage: The package that will be create inside the structure:br.com.romalopes.meven2Test
-				 - Confirm
-			- gradle setupBuild
-		- copy the batch file to root
-			gradlew (for X)
-			gradle.bat ( for windows)
-		- copy settings.gradle to root
-			Only this inside: rootProject.name = "NAME PROJECT"
-		- The main file is build.gradle
+Introduction
+	- Build Automate, test, publishing, deployiment and so on.
+	- Combines the flexibility of ANT with dependency management and conventions of Maven.
+	- Uses Groovy DSL and uses a declarative way to describe the builds.
+Features
+	Declarative builds and build-by-convention
+		Gradle uses DSL(Domain Specific Language) based on Groovy.
+	Language for dependency based programming
+		The tasks are based in a hierarchy, favoring the builds
+	Structure your build
+		Easy to compose buid from reusable pieces
+	Deep API
+		Allow to monitor and customize the configuration and behavior execution
+	Scalability
+		Reusability allows one project uses parts of other projects increasing the produtivity
+	Multi-project builds
+		You can rebuild a project or its sub-project, that depends on another sub-project.
+	Different ways to manage dependencies
+		Maven has just one way.  Can integrate with maven and ivy, or just use jars or directories.
+	Groovy
+		Insteady of XML.
+
+To use the Gradle from github
+	git clone https://github.com/romalopes/gradle.git
+	cd gradle
+	gradle test
+	gradlew build
+	gradle assemble //to create the zip.
+	
+To create a JAVA gradle project
+	- copy the directory Gradle to root
+		- gradle
+			wrapper
+				gradle-wrapper.jar
+				gradle-wrapper.properties
+			ide.gradle
+	- OR 
+		 gradle setupBuild  --> This command creathe the structure of gradle.
+	- Converting from Maven.  It is very simple.
+		- Create a maven project
+			- mvn archetype:generate
+			 - There are over 850 archetypes.  Use the 314(
+			 -archetype-quickstart), sugested but maven
+			 - Version of maven-archetype-quickstart: Use the sugested(1.1), number 6.
+			 - groupId: The groupId that will be inside the pom.xml. I use: br.com.romalopes.meven2Test
+			 - artifactId: mavenToGradle.  The project will be created inside this directory.
+			 - Version: Accept the sugested.
+			 - Value for property papckage: The package that will be create inside the structure:br.com.romalopes.meven2Test
+			 - Confirm
+		- gradle setupBuild
+	- copy the batch file to root
+		gradlew (for X)
+		gradle.bat ( for windows)
+	- copy settings.gradle to root
+		Only this inside: rootProject.name = "NAME PROJECT"
+	- The main file is build.gradle
+		Ex:
+			apply plugin: 'java'  //Include plugin of java and its tasks
+
+			sourceCompatibility = 1.5
+			version = '1.0'
+			jar {			//change the manifest
+				manifest {
+					attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+				}
+			}
+
+			repositories {	//repositories of maven.  Get the libraries
+				mavenCentral()
+			}
+
+			dependencies {	//Two types of dependencies.  compile and testCompile
+				compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+				testCompile group: 'junit', name: 'junit', version: '4.+'
+			}
+
+			test {  // you can set the properties of a task, add behaviour to a task, change the dependencies of a task, or replace a task entirely
+					//in this case, I added a property when test runs.
+				systemProperties 'property': 'value'
+			}
+
+			uploadArchives {
+				repositories {
+				   flatDir {
+					   dirs 'repos'
+				   }
+				}
+			}
+Tasks
+	- The build file is build.gradle		
+	Simple examples		
+		- Project
+			Each project has many tasks
+			- To create a simple project, create a file build.gradle
 			Ex:
-				apply plugin: 'java'  //Include plugin of java and its tasks
-
-				sourceCompatibility = 1.5
-				version = '1.0'
-				jar {			//change the manifest
-					manifest {
-						attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
-					}
-				}
-
-				repositories {	//repositories of maven.  Get the libraries
-					mavenCentral()
-				}
-
-				dependencies {	//Two types of dependencies.  compile and testCompile
-					compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
-					testCompile group: 'junit', name: 'junit', version: '4.+'
-				}
-
-				test {  // you can set the properties of a task, add behaviour to a task, change the dependencies of a task, or replace a task entirely
-						//in this case, I added a property when test runs.
-					systemProperties 'property': 'value'
-				}
-
-				uploadArchives {
-					repositories {
-					   flatDir {
-						   dirs 'repos'
-					   }
-					}
-				}
-	Tasks
-		- The build file is build.gradle		
-		Simple examples		
-			- Project
-				Each project has many tasks
-				- To create a simple project, create a file build.gradle
-				Ex:
-					task hello {
-						doLast {
-							println 'Hello world!'
-						}
-					}
-					OR
-					task hello << {
+				task hello {
+					doLast {
 						println 'Hello world!'
 					}
-				RUN: gradle -q hello
-		It is possible to add behavior to an existing task
-			task hello << {
-				println 'Hello Earth'
-			}
-			hello.doFirst {
-				println 'Hello Venus'
-			}
-		Task Dependencies
-			One task can depend on another using: task taskX(dependsOn: 'taskY') << {
-		Dynamic Tasks
-			Tasks can be dynamic.  In this case, 4 tasks are created (task0 to task3).  There is a dependency.
-			4.times { counter ->
-				task "task$counter" << {
-					println "I'm task number $counter"
 				}
+				OR
+				task hello << {
+					println 'Hello world!'
+				}
+			RUN: gradle -q hello
+	It is possible to add behavior to an existing task
+		task hello << {
+			println 'Hello Earth'
+		}
+		hello.doFirst {
+			println 'Hello Venus'
+		}
+	Task Dependencies
+		One task can depend on another using: task taskX(dependsOn: 'taskY') << {
+	Dynamic Tasks
+		Tasks can be dynamic.  In this case, 4 tasks are created (task0 to task3).  There is a dependency.
+		4.times { counter ->
+			task "task$counter" << {
+				println "I'm task number $counter"
 			}
-			task0.dependsOn task2, task3
-		Default Tasks
-			defaultTasks 'task1', 'task2'
-		- Plugins
-			Plugin is an extension to Grails which configures a project in some way, typically adding pre-configured tasks.
-		- Locating tasks
-			//task is viewed as a project's property
-			task hello
-			println hello.name
-			println project.hello.name
+		}
+		task0.dependsOn task2, task3
+	Default Tasks
+		defaultTasks 'task1', 'task2'
+	- Plugins
+		Plugin is an extension to Grails which configures a project in some way, typically adding pre-configured tasks.
+	- Locating tasks
+		//task is viewed as a project's property
+		task hello
+		println hello.name
+		println project.hello.name
 
-			//tasks are in a task collection called "task"
-			task hello
-			println tasks.hello.name
-			println tasks['hello'].name	
+		//tasks are in a task collection called "task"
+		task hello
+		println tasks.hello.name
+		println tasks['hello'].name	
 
-			//task can be located using getByPath
-			project(':projectA') {
-			    task hello
-			}
-			task hello
-			println tasks.getByPath('hello').path
-			println tasks.getByPath(':hello').path
-			println tasks.getByPath('projectA:hello').path
-			println tasks.getByPath(':projectA:hello').path
+		//task can be located using getByPath
+		project(':projectA') {
+		    task hello
+		}
+		task hello
+		println tasks.getByPath('hello').path
+		println tasks.getByPath(':hello').path
+		println tasks.getByPath('projectA:hello').path
+		println tasks.getByPath(':projectA:hello').path
 
-		Configuring a task
-			The propoerty "Copy".  
-			task myCopy(type: Copy) //I created a copy task.
+	Configuring a task
+		The property "Copy".
+		- Copy myCopy = task(myCopy, type: Copy)
+			myCopy.from 'resources'
+			myCopy.into 'target'
+			myCopy.include('**/*.txt', '**/*.xml', '**/*.properties')
+		OR
+		- task myCopy(type: Copy) //I created a copy task.
+		task myCopy(type: Copy)
+		myCopy {
+		   from 'resources'
+		   into 'target'
+		   include('**/*.txt', '**/*.xml', '**/*.properties')
+		}
 
+		OR
+		task copy(type: Copy) {
+		   from 'resources'
+		   into 'target'
+		   include('**/*.txt', '**/*.xml', '**/*.properties')
+		}
+	Creating a dependency just to a task of a project
+		project('projectA') {
+		    task taskX(dependsOn: ':projectB:taskY') << {
+		        println 'taskX'
+		    }
+		}
 
+		project('projectB') {
+		    task taskY << {
+		        println 'taskY'
+		    }
+		}
+	Ordering tasks
+		task taskX << {
+		    println 'taskX'
+		}
+		task taskY << {
+			description = 'task Y.'
+		    println 'taskY'
+		}
+		taskY.mustRunAfter taskX
 
-Cap 15.
+		$gradle -q taskY taskX //will run taskX and taskY
+		$ gradle -q taskY	//will run just taskY
+		$ gradle tasks will print the description of taskY
+	Replace tasks
+		task copy(type: Copy)
 
+		task copy(overwrite: true) << {
+		    println('I am the new one.')
+		}
+	StopExecutionException
+		Stops running the task and returns
+		compile.doFirst {
+		    // Here you would put arbitrary conditions in real life. But we use this as an integration test, so we want defined behavior.
+		    if (true) { throw new StopExecutionException() }
+		}
+	Disabling tasks
+		task disableMe << {
+		    println 'This should not be printed if the task is disabled.'
+		}
+		disableMe.enabled = false
+	Task Rules
+		when a behavior of a task depends on many parameters
+	Finalizer Task
+		When we want to make one task run after another is finalized.
+		task taskX << {
+		    println 'taskX'
+		}
+		task taskY << {
+		    println 'taskY'
+		}
 
+		taskX.finalizedBy taskY
+		Run taskX and taskY
 
-
-
-	Gradle with Java plugin
-		apply plugin: 'java'
-		To create a project, it is good to have the same structure that MAVEN project
-			PROJECT
-				- src
-					main
+Gradle with Java plugin
+	apply plugin: 'java'
+	To create a project, it is good to have the same structure that MAVEN project
+		PROJECT
+			- src
+				main
+					- java
+					- test
 						- java
-						- test
-							- java
-							- resources
 						- resources
-				buid
-					libs
-		Main Commands
-			gradle --> 
-				build -> compile, test, build jar
-				clean -> delete the build directory
-				assemble -> Compile and build the jar.  Does not run the tests
-				check -> compile and test
-		External dependencies
-			Repositories
-				repositories {
-					mavenCentral()
-				}
-			Dependencies
-				dependencies {
-					compile -> dependency in compile-time
-					testCompile -> dependency in compile-time for test
-					runtime -> dependency in runtime
-					testRuntime -> dependency in runtime for test
-			}
-		Multi-project Java build
-			create a file called: settings.gradle in the same directory of build.gradle.
-			Ex:
-		include "shared", "api", "services:webservice", "services:shared"
-		rootProject.children.each { prj ->  //para cada filho
-			prj.projectDir = new File("$rootDir/subprojects/$prj.name")
-		}
-		rootProject.name = 'groovy' // set the name of rootProject.
-	Dependency Management
-		Some dependencies are in remote location from Maven or Ivi.  Sometimes the dependencies of these dependencies are remote also.
-		Declaring dependencies
-			apply plugin: 'java'
-
+					- resources
+			buid
+				libs
+	Main Commands
+		gradle --> 
+			build -> compile, test, build jar
+			clean -> delete the build directory
+			assemble -> Compile and build the jar.  Does not run the tests
+			check -> compile and test
+	External dependencies
+		Repositories
 			repositories {
-			    mavenCentral()
-			    OR
-		        url "http://repo.mycompany.com/maven2"
-		        ivy {
-     			   url "http://repo.mycompany.com/repo"
-    			}
-    		}
-			dependencies {//depends from hibernate to compile e from junit to compile the test
-			    compile group: 'org.hibernate', name: 'hibernate-core', version: '3.6.7.Final'
-			    OR
-			    compile 'org.hibernate:hibernate-core:3.6.7.Final'
-			    testCompile group: 'junit', name: 'junit', version: '4.+'
+				mavenCentral()
 			}
-	To work with groovy
-		- Use: apply plugin: 'groovy' 
-			This plugin extends the compile task an look for source files in src/main/groovy and src/test/groovy
-		- Declare the to find it
-			apply plugin: 'eclipse'
-			apply plugin: 'groovy'
-
-			repositories {
-			    mavenCentral()
-			}
-
+		Dependencies
 			dependencies {
-			    compile 'org.codehaus.groovy:groovy-all:2.0.5' //jars are included in classpath
-			    testCompile 'junit:junit:4.11'
-			}
-			- gradle build compile, test and JAR the project.
-	Excecuting multiple Tasks
-		http://www.gradle.org/docs/current/userguide/img/commandLineTutorialTasks.png
-		just put all together: gradle dist test
-	Excluding tasks
-		gradle dist - x tes
-		Use --continue to continue the build even if a failute occurs.
-	To build a different gradle file
-		Ex:
-		task hello << {
-			   println "using build file '$buildFile.name' in '$buildFile.parentFile.name'."
+				compile -> dependency in compile-time
+				testCompile -> dependency in compile-time for test
+				runtime -> dependency in runtime
+				testRuntime -> dependency in runtime for test
 		}
-		gradle -q -b subdir/myproject.gradle hello
-	Getting information
-		list of subprojects: gradle projects  
-		list the tasks: gradle tasks --all
-		list dependencies: gradle -q dependencies api:dependencies webapp:dependencies 
-		Information about build: --profile.  Saved in target/reports/profile 
-	Graphical User Interface (GUI)
-		gradle --gui
-	Writing build scripts
-		Written in DSL(Domain specific language), based in groovy
-		An object Project is created for each project.  Any METHOD or PROPERTY in build script that was defined by user is delegates to Project object.
-		The Project Object has some default attributes such as project, name, buildDir, path, description, projectDir, buildDir, group, version, ant
-		Ex: 
-		println name
-		println project.name
-		- Declaring variables
-			def dest = "dest"
-
-			task copy(type: Copy) {
-			    from "source"
-			    into dest
-			}
-		Extra properties
-			Owned by object "ext"
-			Ex:
-				ext {
-				    springVersion = "3.1.0.RELEASE"
-				    emailNotification = "build@master.org"
-				}
-
-				sourceSets.all { ext.purpose = null }
-
-				sourceSets {
-				    main {
-				        purpose = "production"
-				    }
-				}
-				task printProperties << {
-				    println springVersion
-				    println emailNotification
-				    sourceSets.matching { it.purpose == "production" }.each { println it.name }
-				}
-				$ gradle -q printProperties
-	Remembering Groovy
-		// Iterable gets an each() method
-		configurations.runtime.each { File f -> println f }
-
-		// Using a getter method
-		println project.buildDir
-		println getProject().getBuildDir()
-
-		// Using a setter method
-		project.buildDir = 'target'
-		getProject().setBuildDir('target')
-
-
-		test.systemProperty 'some.prop', 'value'
-		test.systemProperty('some.prop', 'value')
-
-		// List literal
-		test.includes = ['org/gradle/api/**', 'org/gradle/internal/**']
-
-		List<String> list = new ArrayList<String>()
-		list.add('org/gradle/api/**')
-		list.add('org/gradle/internal/**')
-		test.includes = list
-
-		// Map literal
+	Multi-project Java build
+		create a file called: settings.gradle in the same directory of build.gradle.
+		Ex:
+	include "shared", "api", "services:webservice", "services:shared"
+	rootProject.children.each { prj ->  //para cada filho
+		prj.projectDir = new File("$rootDir/subprojects/$prj.name")
+	}
+	rootProject.name = 'groovy' // set the name of rootProject.
+Dependency Management
+	Some dependencies are in remote location from Maven or Ivi.  Sometimes the dependencies of these dependencies are remote also.
+	Declaring dependencies
 		apply plugin: 'java'
 
-		Map<String, String> map = new HashMap<String, String>()
-		map.put('plugin', 'java')
-		apply(map)
-
- 		// Closures as the last parameter in a method
- 		// When the last parameter of a method is a closure, you can place the closure after the method call:
 		repositories {
-		    println "in a closure"
-		}
-		repositories() { println "in a closure" }
-		repositories({ println "in a closure" })
-
-		//Closure Delegate
-		//Each closure has a delegate object which Groovy uses to look up variable and method references which are not local variables or parameters of the closure.
-		//Gradle uses this for configuration closures, where the delegate object is set to the object to be configured.
-		dependencies {
-		    assert delegate == project.dependencies
-		    compile('junit:junit:4.11')
-		    delegate.compile('junit:junit:4.11')
-		}
-
-		//Directory creation
-		classesDir = new File('build/classes')
-		task resources << {
-		    classesDir.mkdirs()
-		    // do something
-		}
-		task compile(dependsOn: 'resources') << {
-		    if (classesDir.isDirectory()) {
-		        println 'The class directory exists. I can operate'
-		    }
-		    // do something
-		}
-
-	Gradle properties and system properties
-		- you can call: $ gradle -D[Proprety]
-			Ex: $ gradle -q -PcommandLineProjectProp=commandLineProjectPropValue
-		- gradle.properties
-			Properties declared in this file can be read by build.gradle
-			EAsch sub-project can have it own gradle.properties
-			Ex:
-			in gradle.properties
-				gradlePropertiesProp=gradlePropertiesValue
-				systemProp.system=systemValue
-			task printProps << {
- 			    println gradlePropertiesProp
-    		    println System.properties['system']
+		    mavenCentral()
+		    OR
+	        url "http://repo.mycompany.com/maven2"
+	        ivy {
+ 			   url "http://repo.mycompany.com/repo"
 			}
-	Using another build script
-		//build.gradle
-		apply from: 'other.gradle'
-		
-		//other.gradle
-		println "configuring $project"
-		task hello << {
-		    println 'hello from other script'
 		}
-	Arbitrary Objects
-		Using "configure" it is possible to create objects
-			task configure1 << {
-		    pos = configure(new java.text.FieldPosition(10)) {
-		        beginIndex = 1
-		    }
-		    println pos.beginIndex
-
-		    //but inside the task it is possible to create objects directly.  
-		    c = new A()
-		    c.b=1
-		    println c.b
-
-			c = configure(){
-		        a=1
-		    }
-		    println c.a
+		dependencies {//depends from hibernate to compile e from junit to compile the test
+		    compile group: 'org.hibernate', name: 'hibernate-core', version: '3.6.7.Final'
+		    OR
+		    compile 'org.hibernate:hibernate-core:3.6.7.Final'
+		    testCompile group: 'junit', name: 'junit', version: '4.+'
 		}
-		gradle -q configure1
+To work with groovy
+	- Use: apply plugin: 'groovy' 
+		This plugin extends the compile task an look for source files in src/main/groovy and src/test/groovy
+	- Declare the to find it
+		apply plugin: 'eclipse'
+		apply plugin: 'groovy'
 
+		repositories {
+		    mavenCentral()
+		}
+
+		dependencies {
+		    compile 'org.codehaus.groovy:groovy-all:2.0.5' //jars are included in classpath
+		    testCompile 'junit:junit:4.11'
+		}
+		- gradle build compile, test and JAR the project.
+Excecuting multiple Tasks
+	http://www.gradle.org/docs/current/userguide/img/commandLineTutorialTasks.png
+	just put all together: gradle dist test
+Excluding tasks
+	gradle dist - x tes
+	Use --continue to continue the build even if a failute occurs.
+To build a different gradle file
+	Ex:
+	task hello << {
+		   println "using build file '$buildFile.name' in '$buildFile.parentFile.name'."
+	}
+	gradle -q -b subdir/myproject.gradle hello
+Getting information
+	list of subprojects: gradle projects  
+	list the tasks: gradle tasks --all
+	list dependencies: gradle -q dependencies api:dependencies webapp:dependencies 
+	Information about build: --profile.  Saved in target/reports/profile 
+Graphical User Interface (GUI)
+	gradle --gui
+Writing build scripts
+	Written in DSL(Domain specific language), based in groovy
+	An object Project is created for each project.  Any METHOD or PROPERTY in build script that was defined by user is delegates to Project object.
+	The Project Object has some default attributes such as project, name, buildDir, path, description, projectDir, buildDir, group, version, ant
+	Ex: 
+	println name
+	println project.name
+	- Declaring variables
+		def dest = "dest"
+
+		task copy(type: Copy) {
+		    from "source"
+		    into dest
+		}
+	Extra properties
+		Owned by object "ext"
+		Ex:
+			ext {
+			    springVersion = "3.1.0.RELEASE"
+			    emailNotification = "build@master.org"
+			}
+
+			sourceSets.all { ext.purpose = null }
+
+			sourceSets {
+			    main {
+			        purpose = "production"
+			    }
+			}
+			task printProperties << {
+			    println springVersion
+			    println emailNotification
+			    sourceSets.matching { it.purpose == "production" }.each { println it.name }
+			}
+			$ gradle -q printProperties
+Remembering Groovy
+	// Iterable gets an each() method
+	configurations.runtime.each { File f -> println f }
+
+	// Using a getter method
+	println project.buildDir
+	println getProject().getBuildDir()
+
+	// Using a setter method
+	project.buildDir = 'target'
+	getProject().setBuildDir('target')
+
+
+	test.systemProperty 'some.prop', 'value'
+	test.systemProperty('some.prop', 'value')
+
+	// List literal
+	test.includes = ['org/gradle/api/**', 'org/gradle/internal/**']
+
+	List<String> list = new ArrayList<String>()
+	list.add('org/gradle/api/**')
+	list.add('org/gradle/internal/**')
+	test.includes = list
+
+	// Map literal
+	apply plugin: 'java'
+
+	Map<String, String> map = new HashMap<String, String>()
+	map.put('plugin', 'java')
+	apply(map)
+
+		// Closures as the last parameter in a method
+		// When the last parameter of a method is a closure, you can place the closure after the method call:
+	repositories {
+	    println "in a closure"
+	}
+	repositories() { println "in a closure" }
+	repositories({ println "in a closure" })
+
+	//Closure Delegate
+	//Each closure has a delegate object which Groovy uses to look up variable and method references which are not local variables or parameters of the closure.
+	//Gradle uses this for configuration closures, where the delegate object is set to the object to be configured.
+	dependencies {
+	    assert delegate == project.dependencies
+	    compile('junit:junit:4.11')
+	    delegate.compile('junit:junit:4.11')
+	}
+
+	//Directory creation
+	classesDir = new File('build/classes')
+	task resources << {
+	    classesDir.mkdirs()
+	    // do something
+	}
+	task compile(dependsOn: 'resources') << {
+	    if (classesDir.isDirectory()) {
+	        println 'The class directory exists. I can operate'
+	    }
+	    // do something
+	}
+
+Gradle properties and system properties
+	- you can call: $ gradle -D[Proprety]
+		Ex: $ gradle -q -PcommandLineProjectProp=commandLineProjectPropValue
+	- gradle.properties
+		Properties declared in this file can be read by build.gradle
+		EAsch sub-project can have it own gradle.properties
+		Ex:
+		in gradle.properties
+			gradlePropertiesProp=gradlePropertiesValue
+			systemProp.system=systemValue
+		task printProps << {
+			    println gradlePropertiesProp
+		    println System.properties['system']
+		}
+Using another build script
+	//build.gradle
+	apply from: 'other.gradle'
+	
+	//other.gradle
+	println "configuring $project"
+	task hello << {
+	    println 'hello from other script'
+	}
+Arbitrary Objects
+	Using "configure" it is possible to create objects
+		task configure1 << {
+	    pos = configure(new java.text.FieldPosition(10)) {
+	        beginIndex = 1
+	    }
+	    println pos.beginIndex
+
+	    //but inside the task it is possible to create objects directly.  
+	    c = new A()
+	    c.b=1
+	    println c.b
+
+		c = configure(){
+	        a=1
+	    }
+	    println c.a
+	}
+	gradle -q configure1
+Working with FILES
+	Locating
+		// Using a relative path
+		File configFile = file('src/config.xml')
+		// Using an absolute path
+		configFile = file(configFile.absolutePath)
+		// Using a File object with a relative path
+		configFile = file(new File('src/config.xml'))		
+
+		FileCollection collection = files('src/file1.txt', new File('src/file2.txt'), ['src/file3.txt', 'src/file4.txt'])
+		// Iterate over the files in the collection
+		collection.each {File file ->
+		    println file.name
+		}
+		// Add and subtract collections
+		def union = collection + files('src/file3.txt')
+		def different = collection - files('src/file3.txt')
+
+		// Create a file tree with a base directory
+		FileTree tree = fileTree(dir: 'src/main')
+
+		// Add include and exclude patterns to the tree
+		tree.include '**/*.java'
+		tree.exclude '**/Abstract*'
+	Zip Files
+		apply plugin: 'java'
+		version = 1.0
+		task myZip(type: Zip) {
+		    from 'somedir'
+			baseName = 'customName'  //not needed
+			appendix = 'wrapper'
+		}
+		println myZip.archiveName					//customName-wrapper-1.0.zip
+		println relativePath(myZip.destinationDir) //build/distributions
+		println relativePath(myZip.archivePath)  //build/distributions/customName-wrapper-1.0.zip
+
+	Copy files
+		task copyMethod << {
+    	copy {
+    	-----OR------
+		task copyTask(type: Copy) {
+		    from 'src/main/webapp'
+		    into 'build/explodedWar'
+		    include '**/*.html'
+		    OR
+		    from('src/dist') {
+     		   include '**/*.html'
+    		}
+		    exclude { details -> details.file.name.endsWith('.html') && details.file.text.contains('staging') }
+		    // Copy the contents of a Zip file
+    		from zipTree('src/main/assets.zip')
+    		//////Rename files
+			// Use a closure to map the file name
+			    rename { String fileName ->
+			        fileName.replace('-staging-', '')
+			    }
+			    // Use a regular expression to map the file name
+			    rename '(.+)-staging-(.+)', '$1$2'
+			    rename(/(.+)-staging-(.+)/, '$1$2')    		
+		}
+Chapter 17.
