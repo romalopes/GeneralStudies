@@ -1,0 +1,36 @@
+CSS (Cascade Style sheets)
+==========================
+
+Good references
+	http://www.htmldog.com/guides/css/beginner/selectors/
+	http://www.w3schools.com/css/
+
+How to apply
+	When declaring the code
+		<p style=" width:100px; color:green">Roma</p>
+	In header 
+		Declaring all tag elements
+		body {
+			text-alight: center;
+			color: #00000;
+			font: 13px Arial, 'Helvetica Neue', sans-serif;
+			width: 892px;
+		}
+
+		In class
+		.myclass {
+
+		}
+		<div class="myclass">  </div>
+
+		In a identifier
+		#draggable { width: 100px; height: 100px; padding: 0.5em; }
+		
+		<div id="myId"> </div>
+
+Lenght
+	Pixel -> px ex: 14px
+	EM -> 1m.  
+	pt.  12pt. Used for print media
+	%. ex: width:80% of the parent
+

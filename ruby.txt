@@ -35,22 +35,44 @@ Ruby
 			array = [ 1, "aaa"]
 				values = Array.new(4, "anderson ")
 				puts "#{values}"
+
+				Array({:a => "a", :b => "b"}) #=> [[:a, "a"], [:b, "b"]]
+
 			hash = { "NYC" => 5000, "Rio" => 1908 }
-			hash.keys / hash.values
-				cars = Hash.new( "car" )
-			
-			range (1..10)
+				firstHash = {}   
+				
+
+				hash.keys / hash.values
+					cars = Hash.new( "car" )
+				hash = { :name => "Anderson", :email => "romalopes@yahoo.com.br" }
+				puts hash[:name]  
+					Anderson
+
+				firstHash [:user] = hash
+				firstHash [:user] [:name] == "Anderson"
+
+
+
+
+			range/Block ex:(1..10)
 				(1..10) === 5 		-> true
 				(1..10) === 3.14	-> true
-
+				(1..5).each { |i| puts 2 * i }
+				(1..5).each do |number|
+					puts number
+				end
 			String
 				Comparation
 					if s1 == s2
 					s1.eql?(s2)  
 					%w --> tokenizer
+				def a = "Anderson"
+				def b = "Lopes"
+				puts "#{a} #{b}"
+
 			IO
 				gets
-					put "enter a value:"
+					puts "enter a value:"
 					value = get
 					puts value
 				File
@@ -68,9 +90,18 @@ Ruby
 		Defining a Class
 			class ClassName [< superclass ](optional) 
 			ex: class B < A
-				 def initialize(a, b) #constructor
+				  attr_accessor :name, :email  <--- create getters and setters that allows to set or retrieve the attributes @name and @email
+				
+				  def initialize(a, b) #constructor
       					@a, @b = a, b
-   					end
+   				  end
+   				  OR
+   				   def initialize(attributes = {})  <--attributes is a hash.
+				    @name  = attributes[:name]
+				    @email = attributes[:email]
+				  end
+
+				
 				#{self.type} 
 				#{self.name}
 		Creating instance
@@ -84,6 +115,9 @@ Ruby
 			http://upload.wikimedia.org/wikipedia/commons/4/43/Ruby_data_classes.jpg
 
 		Open Classes
+			It is possible to add methods to classes dynamically.  To do so, just open a declaration of an existing class and redefine or add a new method.
+		Methods ending with ?
+			No special meaning to Ruby.  By convention theses methods returns boolean or nil/not nil values.
 	closures
 		Dynamic method that can be used/passed as variable/parameter
 		def method(a_closure)
@@ -94,6 +128,7 @@ Ruby
 				puts "Testing"
 		}
 		method(closure1)    # Testing
+
 	Exceptions
 		begin 
 			....
@@ -126,6 +161,9 @@ Ruby
 			end
 
 			conditions? satisfied : not_satisfied
+			ex:
+				"valueString".empty? Will_Execute: WontExecute
+			"a".nil? 
 		loop
 			while condition do (do is optional)
 				...

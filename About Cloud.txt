@@ -1,0 +1,37 @@
+About Cloud
+
+Differences
+	http://osintegrators.com/node/145
+	
+
+#Heroku
+
+
+		$ heroku create
+		$ git push heroku master
+		$ heroku run rake db:migrate
+		$ heroku open
+		Running in http://railsfirstapproma.herokuapp.com/users
+
+
+		Basic Commands:
+			$ heroku create
+			$ git push heroku master
+			$ heroku run rake db:migrate
+			$ heroku open
+			Running in http://railsfirstapproma.herokuapp.com/users
+
+
+
+
+###CloudBees
+http://romafirsttest.romalopes.cloudbees.net/
+
+https://run.cloudbees.com/a/romalopes#app-manage/development:romalopes/romafirsttest
+
+Install
+	http://wiki.cloudbees.com/bin/view/RUN/BeesSDK
+
+###CloudFoundry
+
+#AWS
