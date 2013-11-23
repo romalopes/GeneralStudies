@@ -374,7 +374,6 @@ Active Record Basics
 		    	add_index :publications, :publication_type_id
 		  end
 		end
-
 	Comands of rake
 		rake db:drop
 		rake db:resed
@@ -385,7 +384,187 @@ Active Record Basics
 
 
 Rails Database Migration
-	Use Ruby DSL(Domain Specific Language)
+	Use Ruby DSL(Domain Specific Language) instead of SQL
+	File updated is  db/schema.rb
+	Ex:
+		class CreateProducts < ActiveRecord::Migration
+		  def change
+		    create_table :products do |t|
+		      t.string :name
+		      t.text :description
+		 
+		      t.timestamps
+		    end
+		  end
+		end
+		t.timestamps creates the columns created_at and updated_at.
+	Creating the Migration 
+		Command:
+			$ rails generate migration  CommandClass
+		Migrations are created in db/migrate as the name: 	
+			YYYMMDDHHMMSS_NAME_CLASS(table).rb
+		Ex:
+			$ rails generate migration AddPartNumberToProducts
+			generates in a file YYYMMDDHHMMSS_add_details_to_products.r:
+				class AddPartNumberToProducts < ActiveRecord::Migration
+				  def change
+				  end
+				end
+		Use conventions:
+			CreateXXX
+				$ rails generate migration CreateProducts name:string part_number:string
+				-generates:
+					class CreateProducts < ActiveRecord::Migration
+					  def change
+					    create_table :products do |t|
+					      t.string :name
+					      t.string :part_number
+					    end
+					  end
+					end
+			AddXXXToYYY
+				$ rails generate migration AddPartNumberToProducts part_number:string:index price:decimal
+				generates:
+					class AddPartNumberToProducts < ActiveRecord::Migration
+					  def change
+					    add_column :products, :part_number, :string
+					    add_index :products, :part_number
+					    add_column :products, :price, :decimal
+					  end
+					end
+
+			RemoveXXXFromYYY
+				$ rails generate migration RemovePartNumberFromProducts part_number:string
+				-generates
+					class RemovePartNumberFromProducts < ActiveRecord::Migration
+					  def change
+					    remove_column :products, :part_number, :string
+					  end
+					end
+		Including reference to another Class
+			$ rails generate migration AddUserRefToProducts user:references
+			-generates
+				class AddUserRefToProducts < ActiveRecord::Migration
+				  def change
+				    add_reference :products, :user, index: true
+				  end
+				end
+			- This migration will create a user_id column and appropriate index.
+		Joint table
+			$ rails g migration CreateJoinTableCustomerProduct customer product
+			-generates
+				class CreateJoinTableCustomerProduct < ActiveRecord::Migration
+				  def change
+				    create_join_table :customers, :products do |t|
+				      # t.index [:customer_id, :product_id]
+				      # t.index [:product_id, :customer_id]
+				    end
+				  end
+				end
+	Model Generators
+		When generates a model, rails will also generate a migration file 
+
+		$ rails generate model Product name:string description:text
+		- generates
+			class CreateProducts < ActiveRecord::Migration
+			  def change
+			    create_table :products do |t|
+			      t.string :name
+			      t.text :description
+			 
+			      t.timestamps
+			    end
+			  end
+			end
+	Add Type modifier
+		- limit Sets the maximum size of the string/text/binary/integer fields
+		- precision Defines the precision for the decimal fields
+		- scale Defines the scale for the decimal fields
+		- polymorphic Adds a type column for belongs_to associations
+		- null Allows or disallows NULL values in the column.
+		Ex:
+			$ rails generate migration AddDetailsToProducts price:decimal{5,2} supplier:references{polymorphic}
+			- generates
+				class AddDetailsToProducts < ActiveRecord::Migration
+				  def change
+				    add_column :products, :price, :decimal, precision: 5, scale: 2
+				    add_reference :products, :supplier, polymorphic: true, index: true
+				  end
+				end
+	Parts of Migration file
+		Create table
+			create_table :products, options: "ENGINE=BLACKHOLE" do |t|
+			  t.string :name, null: false
+			end
+		Join Table
+			create_join_table :products, :categories, column_options: {null: true}
+				- Creates a new table categories_products with 2 columns(category_id, product_id) with the option that column can be null.
+			create_join_table :products, :categories, table_name: :categorization
+				- Set the name of the table_name
+		Add Index which is not created by default
+			create_join_table :products, :categories do |t|
+			  t.index :product_id
+			  t.index :category_id
+			end
+	Change Table
+		Change table, including/removing/renaming and so on
+		Ex:
+			change_table :products do |t|
+			  t.remove :description, :name  #remove column description and name
+			  t.string :part_number  #Creates par_number column
+			  t.index :part_number	#creates part_number index
+			  t.rename :upccode, :upc_code 
+			end
+	Executing a SQL directry
+		Products.connection.execute('UPDATE `products` SET `price`=`free` WHERE 1')
+	Methods
+		They can be used when the migration can be reverted
+		add_column
+		add_index
+		add_reference
+		add_timestamps
+		create_table
+		create_join_table
+		drop_table (must supply a block)
+		drop_join_table (must supply a block)
+		remove_timestamps
+		rename_column
+		rename_index
+		remove_reference
+		rename_table
+	Reversible
+		Used in complex migrations where Active Records doesn't know to revese. Using reverse, it is possible to specify what to do in a migration.
+		Ensure that the actions are executed in the right order.
+	Up/Down methods
+		Old style of migration intead of change method.
+		Up
+			should describe the transformation you'd like to make to your schema
+		Down
+			should revert the transformations done by the up method
+		Ex:
+			Create a table in up and delete it in down
+	Running migration
+		$ rake db:migrate VERSION=20080906120000
+
+		rollback 3 steps
+			$ rake db:rollback STEP=3
+		roolback 3 steps and redo the migration
+			$ rake db:migrate:redo STEP=3
+		Reset database
+			Drop the table, recreate and load the current schema
+			$ rake db:reset
+			- If a migrantion can't be rolledback, the command doesn't work.
+		Running migration of different environment
+			$ rake db:migrate RAILS_ENV=test
+	Output
+		say -> print a message
+			say 'something'
+		suppress_messages -> avoid any message in a block
+			ppress_messages {add_index :products, :name}
+    			say "and an index!", true
+    	say_with_time
+    		
+
 	
 
 
