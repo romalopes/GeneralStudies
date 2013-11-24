@@ -655,4 +655,6 @@ Active Record Query Interface
 			Client.last(2)
 			executes: SELECT * FROM clients ORDER BY id DESC LIMIT 2
 	Retrieving multiple objects in batch
-		
+
+	Conditions
+				
