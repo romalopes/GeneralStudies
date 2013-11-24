@@ -260,6 +260,10 @@ Rails
 		Running in http://railsfirstapproma.herokuapp.com/users
 	
 
+http://railsapps.github.io/installing-rails.html
+http://www.psychocats.net/ubuntu/virtualbox
+
+
 
 Sumary of guides.rubyonrails
 =================
@@ -563,28 +567,92 @@ Rails Database Migration
 			ppress_messages {add_index :products, :name}
     			say "and an index!", true
     	say_with_time
-    		
-
-	
-
+			Wait some time to say something.
+Active Record Validation
 
 
+Active Record Callbacks
 
+Active Record Associations
 
+Active Record Query Interface
+	Ex:
+		class Client < ActiveRecord::Base
+		  has_one :address
+		  has_many :orders
+		  has_and_belongs_to_many :roles
+		end
+		class Address < ActiveRecord::Base
+		  belongs_to :client
+		end
+		class Order < ActiveRecord::Base
+		  belongs_to :client, counter_cache: true
+		end
+		class Role < ActiveRecord::Base
+		  has_and_belongs_to_many :clients
+		end
+	Retrive object from Database.  These methods returns a instance of ActiveRecord::Relation
+		bind
+		create_with
+		eager_load
+		extending
+		from
+		group
+		having
+		includes
+		joins
+		limit
+		lock
+		none
+		offset
+		order
+		preload
+		readonly
+		references
+		reorder
+		reverse_order
+		select
+		distinct
+		uniq
+		where
 
-
-
-
-
-
-
-
-
-
-
-
-
-http://railsapps.github.io/installing-rails.html
-http://www.psychocats.net/ubuntu/virtualbox
-
-
+	Retrieving a single object
+		find
+			# Find the client with primary key (id) 10.
+			client = Client.find(10)
+			Executes: SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
+		take
+			#Return any record from table
+			client = Client.take
+			executes: SELECT * FROM clients LIMIT 1
+		first
+			#return the first record from table
+			client = Client.first
+			executes: SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
+		last
+			#return the last record from table
+			client = Client.last
+			executes: SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
+		find_by
+			Client.find_by first_name: 'Lifo'
+			Equivalent to
+				Client.where(first_name: 'Lifo').take
+	Retrieving multiple objects
+		find
+			# Find the clients with primary keys 1 and 10.
+			client = Client.find([1, 10])
+			SELECT * FROM clients WHERE (clients.id IN (1,10))
+		take
+			#Take two record from table in any order
+			Client.take(2)
+			executes: SELECT * FROM clients LIMIT 2
+		first
+			#Return the two first records from table
+			Client.first(2)
+			execues: SELECT * FROM clients ORDER BY id ASC LIMIT 2
+		last
+			#Return tha two last records from table
+			Client.last(2)
+			executes: SELECT * FROM clients ORDER BY id DESC LIMIT 2
+	Retrieving multiple objects in batch
+		
