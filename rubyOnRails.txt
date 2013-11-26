@@ -568,12 +568,62 @@ Rails Database Migration
     			say "and an index!", true
     	say_with_time
 			Wait some time to say something.
-Active Record Validation
 
+Active Record Validation
+	Validation happens when class.new_record? is called
+	Ex:
+		p = Person.new(name: "John Doe")
+		#<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
+		#p.new_record?
+		#true
+		p.save
+		#true
+		p.new_reccord?
+		false
+	Validation acts on:
+		create
+		create!
+		save
+		save!
+		update
+		update!
+	These methods skip validation
+		decrement!
+		decrement_counter
+		increment!
+		increment_counter
+		toggle!
+		touch
+		update_all
+		update_attribute
+		update_column
+		update_columns
+		update_counters
+
+		save(validate: false)
+	valid? invalid?
+		Person.create(name: nil).valid? # => false
+	errors[]
+		After validation, each error will be stores in a array object.errors
+		Person.new.errors[:name].any?
+		add
+			It is possible to add error
+			errors.add(:name, "cannot contain the characters !@#%*()_-+=")
+		Clear and Empty
+			person.errors.clear
+			person.errors.empty? # => true
+		size
+			person.errors.size # => 2
+		Each erro
+			person.errors.full_messages.each do |msg| 
+      			puts msg 
+      		end
+      	When a error occurs a <div> is created to b
 
 Active Record Callbacks
 
 Active Record Associations
+	
 
 Active Record Query Interface
 	Ex:
@@ -656,5 +706,284 @@ Active Record Query Interface
 			executes: SELECT * FROM clients ORDER BY id DESC LIMIT 2
 	Retrieving multiple objects in batch
 
-	Conditions
-				
+	Conditions (Where)
+		Ex:
+			Client.where("orders_count = '2'")
+			Client.where("orders_count = ? AND locked = ?", params[:orders], false)
+			Client.where("orders_count = #{params[:orders]}") <- Insecure
+
+		Placeholder conditions (use ":xxx" intead of "?")
+			Client.where("created_at >= :start_date AND created_at <= :end_date", {start_date: params[:start_date], end_date: params[:end_date]})
+
+		Hash conditions
+			Client.where(locked: true)
+			OR
+			Client.where('locked' => true)
+			With belongs_to relationship.  Passes the object of relationship
+				Post.where(author: author)
+				Author.joins(:posts).where(posts: {author: author})
+			Range (Implements between) 
+				Client.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
+			Subset (Implements IN)
+				Client.where(orders_count: [1,3,5])
+				Executes: SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
+		NOT condition
+			Post.where.not(author: author)
+		Order (none, :asc, :desc)
+			Client.order(:created_at)
+			# OR
+			Client.order("created_at")
+			#OR
+			Client.order(orders_count: :asc, created_at: :desc)
+		SELECT
+			While "find" returns all fields.  SELECT returns only the specified
+			Client.select("viewable_by, locked")
+			executes: SELECT viewable_by, locked FROM clients
+			If try to get an attribute that doesn't exists returns a error
+				ActiveModel::MissingAttributeError: missing attribute: <attribute>
+			DISTINCT
+				Client.select(:name).distinct
+				executes:
+					select DISTINCT name from Client
+		LIMITS
+			Client.limit(5)
+			OFFSET
+				Client.limit(5).offset(30)
+				executes: SELECT * FROM clients LIMIT 5 OFFSET 30
+		GROUPBY
+			Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)")
+			executes: SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at) 
+		HAVING
+			Specify a condition on Groupby
+			
+			Order.select("date(created_at) as ordered_date, sum(price) as total_price").  group("date(created_at)").having("sum(price) > ?", 100)
+	Overrigind Conditions
+		Except
+		unscope
+		only
+		reorder
+		reverse_order
+	NULL Relation
+		Post.none # => returning [] or nil breaks the caller code in this
+	Readonly objects
+		Disallow modification and raises ActiveRecord::ReadOnlyRecord exception
+		client = Client.readonly.first
+	Locking Records for Update
+		Optimistic Locking
+			Allows multiple users access the same record and edits it.  Assumes minimal conflict.  Checks if someone changed the data the record is open
+			- Include a column lock_version of type integer.  When the record changes, Active Rercord increments lock_version.
+
+			c1 = Client.find(1)
+			c2 = Client.find(1)
+			 
+			c1.first_name = "Michael"
+			c1.save
+			 
+			c2.name = "should fail"
+			c2.save # Raises an ActiveRecord::StaleObjectError
+
+		Pessimistic Locking
+			Uses the mechanism provided by Database.  Get the exclusive lock on the selected rows
+				Item.transaction do
+				  i = Item.lock.first  # Lock the first
+				  i.name = 'Jones'
+				  i.save
+				end
+			#OR
+				item = Item.first
+				item.with_lock do
+				  # This block is called within a transaction,
+				  # item is already locked.
+				  item.increment!(:views)
+				end
+			Can pass raw SQL to the lock method, allowing different types of lock
+			Ex for MySQL
+				Item.transaction do
+				  i = Item.lock("LOCK IN SHARE MODE").find(1)
+				  i.increment!(:views)
+				end
+	Joining Tables
+		Just specify a SQL
+			Returns the left table even it the right is NULL
+			Client.joins('LEFT OUTER JOIN addresses ON addresses.client_id = clients.id')
+			executes: SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id = clients.id
+		In the configuration:
+			class Category < ActiveRecord::Base
+			  has_many :posts
+			end
+			 
+			class Post < ActiveRecord::Base
+			  belongs_to :category
+			  has_many :comments
+			  has_many :tags
+			end
+			 
+			class Comment < ActiveRecord::Base
+			  belongs_to :post
+			  has_one :guest
+			end
+			 
+			class Guest < ActiveRecord::Base
+			  belongs_to :comment
+			end
+			 
+			class Tag < ActiveRecord::Base
+			  belongs_to :post
+			end
+
+		Joining a Single Association (INNER)
+			return a Category object for all categories with posts
+			Category.joins(:posts)
+			executes: SELECT categories.* FROM categories INNER JOIN posts ON posts.category_id = categories.id
+		Joining Multiple Associations
+			return all posts that have a category and at least one comment
+			Post.joins(:category, :comments)
+			Executes: SELECT posts.* FROM posts
+				INNER JOIN categories ON posts.category_id = categories.id
+				INNER JOIN comments ON comments.post_id = posts.id
+		Joining Nested Associations (Single Level)
+			return all posts that have a comment made by a guest.
+			Post.joins(comments: :guest)
+			executes: SELECT posts.* FROM posts
+  				INNER JOIN comments ON comments.post_id = posts.id
+  				INNER JOIN guests ON guests.comment_id = comments.id
+  		Joining Nested Associations (Multiple Level)
+  			Category.joins(posts: [{comments: :guest}, :tags])
+			executes: SELECT categories.* FROM categories
+			  INNER JOIN posts ON posts.category_id = categories.id
+			  INNER JOIN comments ON comments.post_id = posts.id
+			  INNER JOIN guests ON guests.comment_id = comments.id
+			  INNER JOIN tags ON tags.post_id = posts.id
+		Specifying Conditions on the Joined Tables
+		 	- find all clients who have orders that were created yesterday, again using a BETWEEN SQL expression.
+			time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+			Client.joins(:orders).where('orders.created_at' => time_range)
+			OR
+			time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+			Client.joins(:orders).where(orders: {created_at: time_range})
+	Eager / Lazy loading
+		# Includes the address in the select and don't read address in a different select(when it is doing put)
+		clients = Client.includes(:address).limit(10)
+ 		clients.each do |client|
+  			puts client.address.postcode
+		end
+		Two selects intead of 11.
+			SELECT * FROM clients LIMIT 10
+			SELECT addresses.* FROM addresses WHERE (addresses.client_id IN (1,2,3,4,5,6,7,8,9,10))
+		Eager for Multiple associations
+			- This loads all the posts and the associated category and comments for each post.
+			Post.includes(:category, :comments)
+			- This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.
+				Category.includes(posts: [{comments: :guest}, :tags]).find(1)
+		Specifying Conditions on Eager Loaded Associations
+			Post.includes(:comments).where("comments.visible" => true)
+			Works like inner join
+	Scopes
+		Defines common used queries which can be referenced as methods
+		class Post < ActiveRecord::Base
+  			scope :published, -> { where(published: true) }
+  			#OR
+			def self.published
+			    where(published: true)
+			end
+			# CAN CHAIN ex: using the scope published above
+			scope :published_and_commented, -> { published.where("comments_count > 0") }
+
+			#With arguments
+			scope :created_before, ->(time) { where("created_at < ?", time) }
+		end
+		Call this ways
+			Post.published # => [published posts]
+			#OR
+			category = Category.first
+			category.posts.published # => [published posts belonging to this category]
+		
+			Post.created_before(Time.zone.now)
+
+		Merge scopes
+			class User < ActiveRecord::Base
+			  scope :active, -> { where state: 'active' }
+			  scope :inactive, -> { where state: 'inactive' }
+			end
+			Calling:			 
+				User.active.inactive
+				# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
+			Meging with where
+				User.active.where(state: 'finished')
+				# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
+		Applying a default scope
+			To apply a scope in all queries - default_scope
+				class Client < ActiveRecord::Base
+				  default_scope { where("removed_at IS NULL") }
+				end		
+	Using SQL
+		find_by_sql
+			Just put the select inside the command
+			Returns a list of objects
+			Client.find_by_sql("SELECT * FROM clients
+	  					INNER JOIN orders ON clients.id = orders.client_id
+  						ORDER clients.created_at desc")
+  		select_all
+  			Returns a array of hashes
+  			Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
+  		pluck
+  			Returns only the elements required.  Converts the database result in a Ruby Array.
+  			Client.where(active: true).pluck(:id)
+				# SELECT id FROM clients WHERE active = 1
+				# => [1, 2, 3]
+			 
+			Client.distinct.pluck(:role)
+				# SELECT DISTINCT role FROM clients
+				# => ['admin', 'member', 'guest']
+			 
+			Client.pluck(:id, :name)
+				# SELECT clients.id, clients.name FROM clients
+				# => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
+			- Pluck can't be chained.  Has to be the last command
+				Client.pluck(:name).limit(1)
+				# => NoMethodError: undefined method `limit' for #<Array:0x007ff34d3ad6d8>
+				 
+				Client.limit(1).pluck(:name)
+				# => ["David"]
+		ids
+			Pluck all ids of a Table
+			Person.ids
+			# SELECT id FROM people
+			Changing the primary key
+				class Person < ActiveRecord::Base
+				  self.primary_key = "person_id"
+				end
+				Person.ids
+				# SELECT person_id FROM people
+		Existence of a Object
+			exists?			any?	many?
+			Return true or false
+			Client.exists?(1)
+			Client.exists?([1,2,3])
+			Client.where(first_name: 'Ryan').exists?
+	Calculations
+		Count
+			Client.SELECT
+			# count count(*) AS count_all FROM clients
+			Client.where(first_name: 'Ryan').count
+			# SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
+			Client.includes("orders").where(first_name: 'Ryan', orders: {status: 'received'}).count
+			#SELECT count(DISTINCT clients.id) AS count_all FROM clients
+						 LEFT OUTER JOIN orders ON orders.client_id = client.id 
+						 WHERE (clients.first_name = 'Ryan' AND orders.status = 'received')
+			Counts the clients that have age attribute
+			Client(:age).count
+		Average
+			Client.average("orders_count")
+		Minimum
+			Client.minimum("age")
+		Maximum
+			Client.maximum("age")
+		Sum
+			Client.sum("orders_count")
+	EXPLAIN
+		Shows the SQL
+		User.where(id: 1).joins(:posts).explain
+
+			
+
