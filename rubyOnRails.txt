@@ -569,6 +569,9 @@ Rails Database Migration
     	say_with_time
 			Wait some time to say something.
 
+
+
+
 Active Record Validation
 	Validation happens when class.new_record? is called
 	Ex:
@@ -606,384 +609,1224 @@ Active Record Validation
 	errors[]
 		After validation, each error will be stores in a array object.errors
 		Person.new.errors[:name].any?
-		add
-			It is possible to add error
-			errors.add(:name, "cannot contain the characters !@#%*()_-+=")
-		Clear and Empty
-			person.errors.clear
-			person.errors.empty? # => true
-		size
-			person.errors.size # => 2
-		Each erro
-			person.errors.full_messages.each do |msg| 
-      			puts msg 
-      		end
+		person = Person.new
+		person.valid? # => false
+		person.errors[:name]
+		If no error, return []
+	add
+		It is possible to add error
+		errors.add(:name, "cannot contain the characters !@#%*()_-+=")
+	error [:base]
+		It is array that always exists, but is empty. Can include error
+			errors[:base] << "This person is invalid because ..."
+		Messages can be includes as it is an array.  Message will be shown in error message.
+	Clear and Empty
+		person.errors.clear
+		person.errors.empty? # => true
+	size
+		person.errors.size # => 2
+	Each erro
+		person.errors.full_messages.each do |msg| 
+  			puts msg 
+  		end
       	When a error occurs a <div> is created to b
 
-Active Record Callbacks
+    Validation Helper
+		Pre-defined validation helpers that can be used directly
+		Acceptance
+			Validates checkbox of acceptance of some company condition for example.
+			class Person < ActiveRecord::Base
+			 	validates :terms_of_service, acceptance: true
+			 	#OR
+  				validates :terms_of_service, acceptance: { accept: 'yes' }
+			end
+			Message:  "must be accepted"
+		validates_associated
+			If valid? the main object(ex:Library), all associations(ex:Books) should be validated
+			class Library < ActiveRecord::Base
+			  has_many :books
+			  validates_associated :books
+			end
+		confirmation
+			when two fields should receive the same value
+			Ex: 
+				class Person < ActiveRecord::Base
+				  validates :email, confirmation: true
+				  validates :email_confirmation, presence: true
+				end
+			In view appears:
+				<%= text_field :person, :email %>
+				<%= text_field :person, :email_confirmation %>
+		exclusion
+			To exclude a specific value.  use "in:" to specify
+			class Account < ActiveRecord::Base
+			  validates :subdomain, exclusion: { in: %w(www us ca jp),
+			    message: "Subdomain %{value} is reserved." }
+			end
+		format
+			Specify a accepted format
+			class Product < ActiveRecord::Base
+			  validates :legacy_code, format: { with: /\A[a-zA-Z]+\z/,
+			    message: "Only letters allowed" }
+			end
+		inclusion
+			If a value is in a set
+			class Coffee < ActiveRecord::Base
+			  validates :size, inclusion: { in: %w(small medium large),
+			    message: "%{value} is not a valid size" }
+			end
+		lenght
+			Accepted lenght
+			class Person < ActiveRecord::Base
+			  validates :name, length: { minimum: 2, maximum: 500,
+			  too_short: "must have at least %{count} words",
+    		  too_long: "must have at most %{count} words" }
+			  validates :password, length: { in: 6..20 }
+			  validates :registration_number, length: { is: 6 }
+			end
+		numerically
+			Accept only number
+			class Player < ActiveRecord::Base
+			  validates :points, numericality: true
+			  validates :games_played, numericality: { only_integer: true } #/\A[+-]?\d+\Z/
+			end
+			Other options:
+				:greater_than, :greater_than_or_equal_to, :equal_to, :less_than, :less_than_or_equal_to, :odd, :even, 
+		Presence
+			Verify the presence of an attribute
+			class LineItem < ActiveRecord::Base
+			  belongs_to :order
+			  validates :order, presence: true
+			end
+			- inverse_of
+				In line_items, Order is mandatory, uses inverse_of
+				class Order < ActiveRecord::Base
+				  has_many :line_items, inverse_of: :order
+				end
+		absence
+			If you need some field to be blank or empty
+			class Person < ActiveRecord::Base
+			  validates :name, :login, :email, absence: true
+			end
+			Same as presence to association
+		uniqueness
+			enforce uniqueness
+			class Account < ActiveRecord::Base
+			  validates :email, uniqueness: true
+			  validates :name, uniqueness: { case_sensitive: false }
+			end
+		validates_with
+			Passed the validation to another class
+			class Person < ActiveRecord::Base
+			  validates_with GoodnessValidator
+			end
+			 
+			class GoodnessValidator < ActiveModel::Validator
+			  def validate(record)
+			    if record.first_name == "Evil"
+			      record.errors[:base] << "This person is evil"
+			    end
+			  end
+			end			
+		validates_each
+			validates attributes in a block
+			class Person < ActiveRecord::Base
+			  validates_each :name, :surname do |record, attr, value|
+			    record.errors.add(attr, 'must start with upper case') if value =~ /\A[a-z]/
+			  end
+			end
+	Common Validation Options
+		:allow_nil
+		:allow_blank
+		:message
+		:on
+			Specify when then validation should happen (:create, :update)
+			# it will be possible to create the record with a non-numerical age
+			validates :age, numericality: true, on: :update
+	Strict Validations
 
-Active Record Associations
+	Conditional Validation
+		Use of :if or :unless
+			class Order < ActiveRecord::Base
+			  validates :card_number, presence: true, if: :paid_with_card?
+			 
+			  def paid_with_card?
+			    payment_type == "card"
+			  end
+			end
+
+			class Person < ActiveRecord::Base
+			  validates :surname, presence: true, if: "name.nil?"
+			end
+		Using Proc with :if or :unless
+			class Account < ActiveRecord::Base
+			  validates :password, confirmation: true,
+			    unless: Proc.new { |a| a.password.blank? }
+			end
+		Grouping conditions
+			Uses with_options
+			class User < ActiveRecord::Base
+			  with_options if: :is_admin? do |admin|
+			    admin.validates :password, length: { minimum: 10 }
+			    admin.validates :email, presence: true
+			  end
+			end
+	Custom Validations 
+		Creating a Validator 
+			Extends the class ActiveModel::Validator and call the validator using: validates_with		
+			class MyValidator < ActiveModel::Validator
+	  			def validate(record)
+	  			end
+	  		end
+	  		class Person
+			  include ActiveModel::Validations
+			  validates_with MyValidator
+			end
+		Creating methods
+			class Class < ActiveRecord::Base
+  				validate :methodToValidate, on :create
+ 
+	  			def methodToValidate
+				    errors.add(:attribute, "can't be in the past")
+				    end
+				end
+			end
+	Errors in view
+		<% if @post.errors.any? %>
+		  <div id="error_explanation">
+		    <h2><%= pluralize(@post.errors.count, "error") %> prohibited this post from being saved:</h2>
+		 
+		    <ul>
+		    <% @post.errors.full_messages.each do |msg| %>
+		      <li><%= msg %></li>
+		    <% end %>
+		    </ul>
+		  </div>
+		<% end %>
+
+Active Record Callbacks
+	Callbacks are methods that is called in certain moment in a life-cicle of a object.  Callbacks are triggered by a specific operation over the Active Record Object.
+	Ways of calling a callback
+		- Creating a methods.  It can be set to run only in some lifecicle events
+			class User < ActiveRecord::Base
+			  before_validation :normalize_name, on: :create
+			 
+			  # :on takes an array as well
+			  after_validation :set_location, on: [ :create, :update ]
+			 
+			  protected
+			  def normalize_name
+			    self.name = self.name.downcase.titleize
+			  end
+			 
+			  def set_location
+			    self.location = LocationService.query(self)
+			  end
+			end
+		- Creating a block
+			class User < ActiveRecord::Base
+			  validates :login, :email, presence: true
+			 
+			  before_validation :ensure_login_has_a_value
+			 
+			  protected
+			  def ensure_login_has_a_value
+			    if login.nil?
+			      self.login = email unless email.blank?
+			    end
+			  end
+			end
+	Running Callbacks
+		Callbacks are triggered by using the following methods.		
+		create
+		create!
+		decrement!
+		destroy
+		destroy!
+		destroy_all
+		increment!
+		save
+		save!
+		save(validate: false)
+		toggle!
+		update_attribute
+		update
+		update!
+		valid?
+
+		Calbacks for Creating an Object
+			before_validation
+			after_validation
+			before_save
+			around_save
+			before_create
+			around_create
+			after_create
+			after_save
+		Calbacks for Updating an Object
+			before_validation
+			after_validation
+			before_save
+			around_save
+			before_update
+			around_update
+			after_update
+			after_save
+		Calbacks for Destroying an Object
+			before_destroy
+			around_destroy
+			after_destroy
+		Others callbacks
+			after_initialize
+				Run then the Object is instantiated with new or loaded from DB.
+			after_find
+				Run then the Object is loaded from DB.
+				after_find is triggered by using the following finder methods:
+					all
+					first
+					find
+					find_by
+					find_by_*
+					find_by_*!
+					find_by_sql
+					last
+	Halting Execution
+		If an exception is thrown, the operation is halted or Rolledback
+	Conditional Callbacks
+		:if or :unles
+		with a simbol
+			class Order < ActiveRecord::Base
+			  before_save :normalize_card_number, if: :paid_with_card?
+			end
+		Using String
+			Used in a short condition
+			class Order < ActiveRecord::Base
+			  before_save :normalize_card_number, if: "paid_with_card?"
+			end
+		With a Proc
+			Used in a short validation method
+			class Order < ActiveRecord::Base
+			  before_save :normalize_card_number,
+			    if: Proc.new { |order| order.paid_with_card? }
+			end
+	Multiple Callbacks
+		class Comment < ActiveRecord::Base
+		  after_create :send_email_to_author, if: :author_wants_emails?,
+		    unless: Proc.new { |comment| comment.post.ignore_comments? }
+		end
+	Callbacks Classes
+
+	Transactionnal Callbacks
+		after_commit and after_rollback.  Similar to after_save, but only execute after the changes  are commited or rolledback.  Usefull when system interacted with external applications.
+		It is called insede a transaction block.  If a exception is thrown the callback is ignored, because they are called only after the operation on DB is finished.
+
+
 	
+Active Record Associations
+	Types of Associations
+		belongs_to
+		has_one
+		has_many
+		has_many :through
+		has_one :through
+		has_and_belongs_to_many	
+	belongs_to
+		Set a one-to-one conection with another model.  Each instance of this class belongs_to one instance of other instance
+		ex:
+			class Order < ActiveRecord::Base
+			  belongs_to :customer
+			end
+		http://guides.rubyonrails.org/images/belongs_to.png
+
+		Corresponding migration
+			class CreateOrders < ActiveRecord::Migration
+			  def change
+			    create_table :customers do |t|
+			      t.string :name
+			      t.timestamps
+			    end
+			 
+			    create_table :orders do |t|
+			      t.belongs_to :customer
+			      t.datetime :order_date
+			      t.timestamps
+			    end
+			  end
+			end
+	has_one
+		set a one-to-one connection with another model.  But this association denotes possession of another instance
+		ex:
+			class Supplier < ActiveRecord::Base
+			  has_one :account
+			end
+		http://guides.rubyonrails.org/images/has_one.png
+		Corresponding migration
+			class CreateSuppliers < ActiveRecord::Migration
+			  def change
+			    create_table :suppliers do |t|
+			      t.string :name
+			      t.timestamps
+			    end
+			 
+			    create_table :accounts do |t|
+			      t.belongs_to :supplier
+			      t.string :account_number
+			      t.timestamps
+			    end
+			  end
+			end
+	has_many
+		A instance of a class has many instances of another class
+		ex:
+			class Customer < ActiveRecord::Base
+			  has_many :orders
+			end
+		http://guides.rubyonrails.org/images/has_many.png
+		Corresponding migration
+			class CreateCustomers < ActiveRecord::Migration
+			  def change
+			    create_table :customers do |t|
+			      t.string :name
+			      t.timestamps
+			    end
+			 
+			    create_table :orders do |t|
+			      t.belongs_to :customer
+			      t.datetime :order_date
+			      t.timestamps
+			    end
+			  end
+			end
+	The has_many :through Association
+		To set many-to-many association.  It creates a third model to represent the many-to-many association
+		ex:
+			class Physician < ActiveRecord::Base
+			  has_many :appointments
+			  has_many :patients, through: :appointments
+			end
+			 
+			class Appointment < ActiveRecord::Base
+			  belongs_to :physician
+			  belongs_to :patient
+			end
+			 
+			class Patient < ActiveRecord::Base
+			  has_many :appointments
+			  has_many :physicians, through: :appointments
+			end
+		http://guides.rubyonrails.org/images/has_many_through.png
+		Corresponding migration
+			class CreateAppointments < ActiveRecord::Migration
+			  def change
+			    create_table :physicians do |t|
+			      t.string :name
+			      t.timestamps
+			    end
+			 
+			    create_table :patients do |t|
+			      t.string :name
+			      t.timestamps
+			    end
+			 
+			    create_table :appointments do |t|
+			      t.belongs_to :physician
+			      t.belongs_to :patient
+			      t.datetime :appointment_date
+			      t.timestamps
+			    end
+			  end
+			end
+		It is possible to get values using the reference attribute
+			physician.patients = patients
+
+		It is possible to go through the nest tree of dependencies using :through
+		EX:
+			class Document < ActiveRecord::Base
+			  has_many :sections
+			  has_many :paragraphs, through: :sections
+			end
+			 
+			class Section < ActiveRecord::Base
+			  belongs_to :document
+			  has_many :paragraphs
+			end
+			 
+			class Paragraph < ActiveRecord::Base
+			  belongs_to :section
+			end
+
+			@document.paragraphs
+
+	has-one :though
+		Set one-to-one relation .  The :though has a similar purpose of above. Access another model through a second.
+
+		ex:
+			class Supplier < ActiveRecord::Base
+			  has_one :account
+			  has_one :account_history, through: :account
+			end
+			 
+			class Account < ActiveRecord::Base
+			  belongs_to :supplier
+			  has_one :account_history
+			end
+			 
+			class AccountHistory < ActiveRecord::Base
+			  belongs_to :account
+			end
+		Corresponding Migration
+			class CreateAccountHistories < ActiveRecord::Migration
+			  def change
+			    create_table :suppliers do |t|
+			      t.string :name
+			      t.timestamps
+			    end
+			 
+			    create_table :accounts do |t|
+			      t.belongs_to :supplier
+			      t.string :account_number
+			      t.timestamps
+			    end
+			 
+			    create_table :account_histories do |t|
+			      t.belongs_to :account
+			      t.integer :credit_rating
+			      t.timestamps
+			    end
+			  end
+			end
+	has_and_belongs_to_many
+		Creates a direct many-to-many association between two models
+		ex:
+			class Assembly < ActiveRecord::Base
+			  has_and_belongs_to_many :parts
+			end
+			 
+			class Part < ActiveRecord::Base
+			  has_and_belongs_to_many :assemblies
+			end
+			http://guides.rubyonrails.org/images/habtm.png
+		Corresponding migration
+			class CreateAssembliesAndParts < ActiveRecord::Migration
+			  def change
+			    create_table :assemblies do |t|
+			      t.string :name
+			      t.timestamps
+			    end
+			 
+			    create_table :parts do |t|
+			      t.string :part_number
+			      t.timestamps
+			    end
+			 
+			    create_table :assemblies_parts do |t|
+			      t.belongs_to :assembly
+			      t.belongs_to :part
+			    end
+			  end
+			end
+	has_many :through OR has_and_belongs_to_many?
+		has_many :through -> If you need the models to be independent entities
+			If you need validations, callbacks, or extra attributes on the join model.
+		has_and_belongs_to_many -> if there is a dependency between entities
+
+	Polymorphic Associations
+		 a model can belong to more than one other model, on a single association.
+		 Ex: A Picture that belongs to Employee and Product
+			class Picture < ActiveRecord::Base
+			  belongs_to :imageable, polymorphic: true
+			end
+			 
+			class Employee < ActiveRecord::Base
+			  has_many :pictures, as: :imageable
+			end
+			 
+			class Product < ActiveRecord::Base
+			  has_many :pictures, as: :imageable
+			end
+		Then:
+			@employee.pictures.
+			AND
+			@product.pictures.
+		Corresponding migration
+			class CreatePictures < ActiveRecord::Migration
+			  def change
+			    create_table :pictures do |t|
+			      t.string :name
+			      t.references :imageable, polymorphic: true
+			      t.timestamps
+			    end
+			  end
+			end
+			http://guides.rubyonrails.org/images/polymorphic.png
+	Self-joins
+		Ex: 
+			class Employee < ActiveRecord::Base
+			  has_many :subordinates, class_name: "Employee",
+			                          foreign_key: "manager_id"
+			 
+			  belongs_to :manager, class_name: "Employee"
+			end
+	Issues
+		Updating the schema
+			belongs_to associations you need to create foreign
+				ex:
+					class Order < ActiveRecord::Base
+					  belongs_to :customer
+					end
+
+					class CreateOrders < ActiveRecord::Migration
+					  def change
+					    create_table :orders do |t|
+					      t.datetime :order_date
+					      t.string   :order_number
+					      t.integer  :customer_id
+					    end
+					  end
+					end
+				has_and_belongs_to_many associations you need to create the appropriate join table.
+
+		Controlling association scope
+			To make associations of classes that are in different modules uses "class_name" and tell all the path
+			module MyApplication
+			  module Business
+			    class Supplier < ActiveRecord::Base
+			       has_one :account,
+			        class_name: "MyApplication::Billing::Account"
+			    end
+			  end
+			 
+			  module Billing
+			    class Account < ActiveRecord::Base
+			       belongs_to :supplier,
+			        class_name: "MyApplication::Business::Supplier"
+			    end
+			  end
+			end
+		Bi-directional associations
+			To guarantee that the relation is bi-directional use : "inverse_of:"
+			class Customer < ActiveRecord::Base
+			  has_many :orders, inverse_of: :customer
+			end
+			 
+			class Order < ActiveRecord::Base
+			  belongs_to :customer, inverse_of: :orders
+			end
+			ex:
+				c = Customer.first
+				o = c.orders.first
+				c.first_name == o.customer.first_name # => true
+				c.first_name = 'Manny'
+				c.first_name == o.customer.first_name # => true
+			Limitations:
+				Do not work with :through, :polymorphic and :as associations
+				For belongs_to associations, has_many inverse associations are ignored.	
+	belongs_to Association Reference
+		association(force_reload = false)
+		association=(associate)
+		build_association(attributes = {})
+		create_association(attributes = {})		
+		Ex:
+			class Order < ActiveRecord::Base
+			  belongs_to :customer
+			end
+
+			association(force_reload = false)
+				@customer = @order.customer
+			association=(associate)
+				@order.customer = @customer
+			build_customer
+				The associated object is NOT saved
+				@customer = @order.build_customer(customer_number: 123,
+                            customer_name: "John Doe")
+			create_customer
+				The associated object IS SAVED
+				@customer = @order.create_customer(customer_number: 123,
+                            customer_name: "John Doe")	
+        Obtions to belongs_to
+        	To customize the behavior of belongs_to
+        	:autosave
+        		If true, Rails will save or destroy any member as soon as the parent is saved
+			:class_name
+				Used when the name of class in belongs_to can't be derived from association name.
+				Or to change the name of the accessed object in belongs_to
+				ex:
+					class Order < ActiveRecord::Base
+					  belongs_to :customer, class_name: "Patron"
+					end
+			:counter_cache
+				Make the SIZE more efficient including a counter and the Db not uses "count(*)" 
+				ex:
+					class Order < ActiveRecord::Base
+					  belongs_to :customer, counter_cache: true
+					  #OR
+					  belongs_to :customer, counter_cache: :count_of_orders
+					end
+					class Customer < ActiveRecord::Base
+					  has_many :orders
+					end
+			:dependent
+				:destroy -> Call the destroy of the dependant object when the parent is destroyed
+					belongs_to :customer, dependent: :destroy
+				:delete -> remove the associated object, but don't call destroy.
+					belongs_to :customer, dependent: :delete
+				:restrict -> A ActiveRecord::DeleteRestrictionError is thrown if try to delete the associated object
+					belongs_to :customer, dependent: :restrict
+			:foreign_key
+				Set a name for foreign key
+				class Order < ActiveRecord::Base
+				  belongs_to :customer, class_name: "Patron",
+				                        foreign_key: "patron_id"
+				end
+			:inverse_of
+				Specify the inverse of association
+				Ex:
+					class Customer < ActiveRecord::Base
+					  has_many :orders, inverse_of: :customer
+					end
+					 
+					class Order < ActiveRecord::Base
+					  belongs_to :customer, inverse_of: :orders
+					end
+			 :polymorphic
+			 	Indicates that an association is polymorphic
+			 :touch
+			 	If the object is saved or destroyed the updated_at stamp is set
+				  belongs_to :customer, touch: true
+				  #OR specify the attribute
+				   belongs_to :customer, touch: :orders_updated_at
+			:validate
+				Whenever you save the object, the associated will be validated as well
+				  belongs_to :customer, validate: true
+		Scopes for belongs_to
+			To customize the query used by belongs_to
+			where
+				belongs_to :customer, -> { where active: true }
+			includes
+				To specify a second-order association that could eager-loaded.  Increase the efficiency
+				For first-order, the eager is automatic
+					class LineItem < ActiveRecord::Base
+					  belongs_to :order, -> { includes :customer }
+					end
+					 
+					class Order < ActiveRecord::Base
+					  belongs_to :customer
+					  has_many :line_items
+					end
+					 
+					class Customer < ActiveRecord::Base
+					  has_many :orders
+					end
+			readonly
+				If readonly, the associated object will be readonly when retrived via a association.
+			select
+				lets override the "SQL SELECT" clause
+	has_many Association Reference
+		Methods
+			collection(force_reload = false)
+				@orders = @customer.orders
+			collection<<(object, ...)
+				@customer.orders << @order1
+			collection.delete(object, ...)
+				- Remove from list, seting foreign key to nil.  If associeated with :destroy it will be destroyed.
+				@customer.orders.delete(@order1)
+			collection.destroy(object, ...)
+				- It will ignore the :depend option
+				@customer.orders.destroy(@order1)
+			collection=objects
+				@order_ids = @customer.order_ids   (ARRAY)
+			collection.clear
+				Remove every object from the collection.  Destroy if "depend :destroy", delete if "depend :delete_all" or set foreign key to nil
+			collection.empty?
+				<% if @customer.orders.empty? %>
+				  No Orders Found
+				<% end %>
+			collection.size
+				@order_count = @customer.orders.size
+			collection.find(...)
+				@open_orders = @customer.orders.find(1)
+			collection.where(...)
+				@open_orders = @customer.orders.where(open: true) # No query yet
+			collection.exists?(...)
+			collection.build(attributes = {}, ...)
+				Created but NOT saved
+				@order = @customer.orders.build(order_date: Time.now,
+                                order_number: "A12345")
+			collection.create(attributes = {})
+				Created and SAVED
+				@order = @customer.orders.create(order_date: Time.now,
+                                 order_number: "A12345")
+    	options for has_may
+    		:as
+    			Polymorphic association
+			:autosave
+				Automatically saved the association based on any modification of the object
+			:class_name
+				Change the class
+				 has_many :orders, class_name: "Transaction"
+			:dependent
+
+			:foreign_key
+				has_many :orders, foreign_key: "cust_id"
+			:inverse_of
+
+			:primary_key
+			:source
+			:source_type
+			:through
+			:validate
+				If validate option to false the associated object will not be validated when the object is saved.  Default = true.
+		Scope for has_many
+			where
+				Confition to the associated object to be met
+				class Customer < ActiveRecord::Base
+				  has_many :confirmed_orders, -> { where "confirmed = 1" },
+				    class_name: "Order"
+				end
+
+			extending
+			group
+				Define a group by
+				has_many :line_items, -> { group 'orders.id' },
+                        through: :orders
+			includes
+				To define a second-order association to eager-load
+				 has_many :orders, -> { includes :line_items }
+			limit
+				limit the number of objects that will be fetched
+				has_many :recent_orders, -> { order('order_date desc').limit(100) },    class_name: "Order",
+			offset
+				Define the offset of a fetch
+				-> { offset(11) }
+			order
+				Define the order by
+				has_many :orders, -> { order "date_confirmed DESC" }
+			readonly
+				If true the associated objects retrieved are readonly
+			select
+				To define your own SQL SELEC
+			distinct
+				Used to keep the collection free from duplication.  Mostly used with :through option
+				class Person
+				  has_many :readings
+				  has_many :posts, -> { distinct }, through: :readings
+				end
+
+	has_and_belongs_to_many Association Reference
+		Methods
+			Basicaly the same as has_many association plus:
+			:join_table 
+				Override the name of the join_table
+		Scope for has_and_belongs_to_many
+			Basicaly the same as has_many association plus:
+			 uniq
+			 	To remove duplicates from colection
+
+	Association Callbacks
+		Callbacks work in some place in the life cicle of a Active Record object.  The are triggered by events in the life cicle of the object.
+		
+		before_add
+		after_add
+		before_remove
+		after_remove
+		ex:
+		class Customer < ActiveRecord::Base
+		  has_many :orders, before_add: :check_credit_limit
+		 
+		  def check_credit_limit(order)
+		    ...
+		  end
+		end
+		If an exception is thrown, the operation is not performed.
+
+
+
+
+
+
+
+
 
 Active Record Query Interface
+Ex:
+	class Client < ActiveRecord::Base
+	  has_one :address
+	  has_many :orders
+	  has_and_belongs_to_many :roles
+	end
+	class Address < ActiveRecord::Base
+	  belongs_to :client
+	end
+	class Order < ActiveRecord::Base
+	  belongs_to :client, counter_cache: true
+	end
+	class Role < ActiveRecord::Base
+	  has_and_belongs_to_many :clients
+	end
+Retrive object from Database.  These methods returns a instance of ActiveRecord::Relation
+	bind
+	create_with
+	eager_load
+	extending
+	from
+	group
+	having
+	includes
+	joins
+	limit
+	lock
+	none
+	offset
+	order
+	preload
+	readonly
+	references
+	reorder
+	reverse_order
+	select
+	distinct
+	uniq
+	where
+
+
+Retrieving a single object
+	find
+		# Find the client with primary key (id) 10.
+		client = Client.find(10)
+		Executes: SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
+	take
+		#Return any record from table
+		client = Client.take
+		executes: SELECT * FROM clients LIMIT 1
+	first
+		#return the first record from table
+		client = Client.first
+		executes: SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
+	last
+		#return the last record from table
+		client = Client.last
+		executes: SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
+	find_by
+		Client.find_by first_name: 'Lifo'
+		Equivalent to
+			Client.where(first_name: 'Lifo').take
+Retrieving multiple objects
+	find
+		# Find the clients with primary keys 1 and 10.
+		client = Client.find([1, 10])
+		SELECT * FROM clients WHERE (clients.id IN (1,10))
+	take
+		#Take two record from table in any order
+		Client.take(2)
+		executes: SELECT * FROM clients LIMIT 2
+	first
+		#Return the two first records from table
+		Client.first(2)
+		execues: SELECT * FROM clients ORDER BY id ASC LIMIT 2
+	last
+		#Return tha two last records from table
+		Client.last(2)
+		executes: SELECT * FROM clients ORDER BY id DESC LIMIT 2
+Retrieving multiple objects in batch
+
+Conditions (Where)
 	Ex:
-		class Client < ActiveRecord::Base
-		  has_one :address
-		  has_many :orders
-		  has_and_belongs_to_many :roles
-		end
-		class Address < ActiveRecord::Base
-		  belongs_to :client
-		end
-		class Order < ActiveRecord::Base
-		  belongs_to :client, counter_cache: true
-		end
-		class Role < ActiveRecord::Base
-		  has_and_belongs_to_many :clients
-		end
-	Retrive object from Database.  These methods returns a instance of ActiveRecord::Relation
-		bind
-		create_with
-		eager_load
-		extending
-		from
-		group
-		having
-		includes
-		joins
-		limit
-		lock
-		none
-		offset
-		order
-		preload
-		readonly
-		references
-		reorder
-		reverse_order
-		select
-		distinct
-		uniq
-		where
+		Client.where("orders_count = '2'")
+		Client.where("orders_count = ? AND locked = ?", params[:orders], false)
+		Client.where("orders_count = #{params[:orders]}") <- Insecure
 
-	Retrieving a single object
-		find
-			# Find the client with primary key (id) 10.
-			client = Client.find(10)
-			Executes: SELECT * FROM clients WHERE (clients.id = 10) LIMIT 1
-		take
-			#Return any record from table
-			client = Client.take
-			executes: SELECT * FROM clients LIMIT 1
-		first
-			#return the first record from table
-			client = Client.first
-			executes: SELECT * FROM clients ORDER BY clients.id ASC LIMIT 1
-		last
-			#return the last record from table
-			client = Client.last
-			executes: SELECT * FROM clients ORDER BY clients.id DESC LIMIT 1
-		find_by
-			Client.find_by first_name: 'Lifo'
-			Equivalent to
-				Client.where(first_name: 'Lifo').take
-	Retrieving multiple objects
-		find
-			# Find the clients with primary keys 1 and 10.
-			client = Client.find([1, 10])
-			SELECT * FROM clients WHERE (clients.id IN (1,10))
-		take
-			#Take two record from table in any order
-			Client.take(2)
-			executes: SELECT * FROM clients LIMIT 2
-		first
-			#Return the two first records from table
-			Client.first(2)
-			execues: SELECT * FROM clients ORDER BY id ASC LIMIT 2
-		last
-			#Return tha two last records from table
-			Client.last(2)
-			executes: SELECT * FROM clients ORDER BY id DESC LIMIT 2
-	Retrieving multiple objects in batch
+	Placeholder conditions (use ":xxx" intead of "?")
+		Client.where("created_at >= :start_date AND created_at <= :end_date", {start_date: params[:start_date], end_date: params[:end_date]})
 
-	Conditions (Where)
-		Ex:
-			Client.where("orders_count = '2'")
-			Client.where("orders_count = ? AND locked = ?", params[:orders], false)
-			Client.where("orders_count = #{params[:orders]}") <- Insecure
-
-		Placeholder conditions (use ":xxx" intead of "?")
-			Client.where("created_at >= :start_date AND created_at <= :end_date", {start_date: params[:start_date], end_date: params[:end_date]})
-
-		Hash conditions
-			Client.where(locked: true)
-			OR
-			Client.where('locked' => true)
-			With belongs_to relationship.  Passes the object of relationship
-				Post.where(author: author)
-				Author.joins(:posts).where(posts: {author: author})
-			Range (Implements between) 
-				Client.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
-			Subset (Implements IN)
-				Client.where(orders_count: [1,3,5])
-				Executes: SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
-		NOT condition
-			Post.where.not(author: author)
-		Order (none, :asc, :desc)
-			Client.order(:created_at)
-			# OR
-			Client.order("created_at")
-			#OR
-			Client.order(orders_count: :asc, created_at: :desc)
-		SELECT
-			While "find" returns all fields.  SELECT returns only the specified
-			Client.select("viewable_by, locked")
-			executes: SELECT viewable_by, locked FROM clients
-			If try to get an attribute that doesn't exists returns a error
-				ActiveModel::MissingAttributeError: missing attribute: <attribute>
-			DISTINCT
-				Client.select(:name).distinct
-				executes:
-					select DISTINCT name from Client
-		LIMITS
-			Client.limit(5)
-			OFFSET
-				Client.limit(5).offset(30)
-				executes: SELECT * FROM clients LIMIT 5 OFFSET 30
-		GROUPBY
-			Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)")
-			executes: SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at) 
-		HAVING
-			Specify a condition on Groupby
-			
-			Order.select("date(created_at) as ordered_date, sum(price) as total_price").  group("date(created_at)").having("sum(price) > ?", 100)
-	Overrigind Conditions
-		Except
-		unscope
-		only
-		reorder
-		reverse_order
-	NULL Relation
-		Post.none # => returning [] or nil breaks the caller code in this
-	Readonly objects
-		Disallow modification and raises ActiveRecord::ReadOnlyRecord exception
-		client = Client.readonly.first
-	Locking Records for Update
-		Optimistic Locking
-			Allows multiple users access the same record and edits it.  Assumes minimal conflict.  Checks if someone changed the data the record is open
-			- Include a column lock_version of type integer.  When the record changes, Active Rercord increments lock_version.
-
-			c1 = Client.find(1)
-			c2 = Client.find(1)
-			 
-			c1.first_name = "Michael"
-			c1.save
-			 
-			c2.name = "should fail"
-			c2.save # Raises an ActiveRecord::StaleObjectError
-
-		Pessimistic Locking
-			Uses the mechanism provided by Database.  Get the exclusive lock on the selected rows
-				Item.transaction do
-				  i = Item.lock.first  # Lock the first
-				  i.name = 'Jones'
-				  i.save
-				end
-			#OR
-				item = Item.first
-				item.with_lock do
-				  # This block is called within a transaction,
-				  # item is already locked.
-				  item.increment!(:views)
-				end
-			Can pass raw SQL to the lock method, allowing different types of lock
-			Ex for MySQL
-				Item.transaction do
-				  i = Item.lock("LOCK IN SHARE MODE").find(1)
-				  i.increment!(:views)
-				end
-	Joining Tables
-		Just specify a SQL
-			Returns the left table even it the right is NULL
-			Client.joins('LEFT OUTER JOIN addresses ON addresses.client_id = clients.id')
-			executes: SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id = clients.id
-		In the configuration:
-			class Category < ActiveRecord::Base
-			  has_many :posts
-			end
-			 
-			class Post < ActiveRecord::Base
-			  belongs_to :category
-			  has_many :comments
-			  has_many :tags
-			end
-			 
-			class Comment < ActiveRecord::Base
-			  belongs_to :post
-			  has_one :guest
-			end
-			 
-			class Guest < ActiveRecord::Base
-			  belongs_to :comment
-			end
-			 
-			class Tag < ActiveRecord::Base
-			  belongs_to :post
-			end
-
-		Joining a Single Association (INNER)
-			return a Category object for all categories with posts
-			Category.joins(:posts)
-			executes: SELECT categories.* FROM categories INNER JOIN posts ON posts.category_id = categories.id
-		Joining Multiple Associations
-			return all posts that have a category and at least one comment
-			Post.joins(:category, :comments)
-			Executes: SELECT posts.* FROM posts
-				INNER JOIN categories ON posts.category_id = categories.id
-				INNER JOIN comments ON comments.post_id = posts.id
-		Joining Nested Associations (Single Level)
-			return all posts that have a comment made by a guest.
-			Post.joins(comments: :guest)
-			executes: SELECT posts.* FROM posts
-  				INNER JOIN comments ON comments.post_id = posts.id
-  				INNER JOIN guests ON guests.comment_id = comments.id
-  		Joining Nested Associations (Multiple Level)
-  			Category.joins(posts: [{comments: :guest}, :tags])
-			executes: SELECT categories.* FROM categories
-			  INNER JOIN posts ON posts.category_id = categories.id
-			  INNER JOIN comments ON comments.post_id = posts.id
-			  INNER JOIN guests ON guests.comment_id = comments.id
-			  INNER JOIN tags ON tags.post_id = posts.id
-		Specifying Conditions on the Joined Tables
-		 	- find all clients who have orders that were created yesterday, again using a BETWEEN SQL expression.
-			time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-			Client.joins(:orders).where('orders.created_at' => time_range)
-			OR
-			time_range = (Time.now.midnight - 1.day)..Time.now.midnight
-			Client.joins(:orders).where(orders: {created_at: time_range})
-	Eager / Lazy loading
-		# Includes the address in the select and don't read address in a different select(when it is doing put)
-		clients = Client.includes(:address).limit(10)
- 		clients.each do |client|
-  			puts client.address.postcode
-		end
-		Two selects intead of 11.
-			SELECT * FROM clients LIMIT 10
-			SELECT addresses.* FROM addresses WHERE (addresses.client_id IN (1,2,3,4,5,6,7,8,9,10))
-		Eager for Multiple associations
-			- This loads all the posts and the associated category and comments for each post.
-			Post.includes(:category, :comments)
-			- This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.
-				Category.includes(posts: [{comments: :guest}, :tags]).find(1)
-		Specifying Conditions on Eager Loaded Associations
-			Post.includes(:comments).where("comments.visible" => true)
-			Works like inner join
-	Scopes
-		Defines common used queries which can be referenced as methods
-		class Post < ActiveRecord::Base
-  			scope :published, -> { where(published: true) }
-  			#OR
-			def self.published
-			    where(published: true)
-			end
-			# CAN CHAIN ex: using the scope published above
-			scope :published_and_commented, -> { published.where("comments_count > 0") }
-
-			#With arguments
-			scope :created_before, ->(time) { where("created_at < ?", time) }
-		end
-		Call this ways
-			Post.published # => [published posts]
-			#OR
-			category = Category.first
-			category.posts.published # => [published posts belonging to this category]
+	Hash conditions
+		Client.where(locked: true)
+		OR
+		Client.where('locked' => true)
+		With belongs_to relationship.  Passes the object of relationship
+			Post.where(author: author)
+			Author.joins(:posts).where(posts: {author: author})
+		Range (Implements between) 
+			Client.where(created_at: (Time.now.midnight - 1.day)..Time.now.midnight)
+		Subset (Implements IN)
+			Client.where(orders_count: [1,3,5])
+			Executes: SELECT * FROM clients WHERE (clients.orders_count IN (1,3,5))
+	NOT condition
+		Post.where.not(author: author)
+	Order (none, :asc, :desc)
+		Client.order(:created_at)
+		# OR
+		Client.order("created_at")
+		#OR
+		Client.order(orders_count: :asc, created_at: :desc)
+	SELECT
+		While "find" returns all fields.  SELECT returns only the specified
+		Client.select("viewable_by, locked")
+		executes: SELECT viewable_by, locked FROM clients
+		If try to get an attribute that doesn't exists returns a error
+			ActiveModel::MissingAttributeError: missing attribute: <attribute>
+		DISTINCT
+			Client.select(:name).distinct
+			executes:
+				select DISTINCT name from Client
+	LIMITS
+		Client.limit(5)
+		OFFSET
+			Client.limit(5).offset(30)
+			executes: SELECT * FROM clients LIMIT 5 OFFSET 30
+	GROUPBY
+		Order.select("date(created_at) as ordered_date, sum(price) as total_price").group("date(created_at)")
+		executes: SELECT date(created_at) as ordered_date, sum(price) as total_price FROM orders GROUP BY date(created_at) 
+	HAVING
+		Specify a condition on Groupby
 		
-			Post.created_before(Time.zone.now)
+		Order.select("date(created_at) as ordered_date, sum(price) as total_price").  group("date(created_at)").having("sum(price) > ?", 100)
+Overrigind Conditions
+	exception
+		Remove a condition from the select
+		Post.where('id > 10').limit(20).order('id asc').except(:order)
+		execute: SELECT * FROM posts WHERE id > 10 LIMIT 20
+	unscope
+		Remove a scope, for example the default_scope
+	only
+		Only executes the "only" condition
+		Ex:Post.where('id > 10').limit(20).order('id desc').only(:order, :where)
+		executes: SELECT * FROM posts WHERE id > 10 ORDER BY id DESC
+	reorder
+		Overrides the default scope order 
+		Ex: class Post < ActiveRecord::Base
+		  ..
+		  ..
+		  has_many :comments, order: 'posted_at DESC'
+		end
+		 
+		Post.find(10).comments.reorder('name')
+		execute: SELECT * FROM posts WHERE id = 10 ORDER BY name
+		Instead of: SELECT * FROM posts WHERE id = 10 ORDER BY posted_at DESC
 
-		Merge scopes
-			class User < ActiveRecord::Base
-			  scope :active, -> { where state: 'active' }
-			  scope :inactive, -> { where state: 'inactive' }
+	reverse_order
+		Client.where("orders_count > 10").reverse_order
+		execute: SELECT * FROM clients WHERE orders_count > 10 ORDER BY clients.id DESC
+NULL Relation
+	Post.none # => returning [] or nil breaks the caller code in this
+Readonly objects
+	Disallow modification and raises ActiveRecord::ReadOnlyRecord exception
+	client = Client.readonly.first
+Locking Records for Update
+	Optimistic Locking
+		Allows multiple users access the same record and edits it.  Assumes minimal conflict.  Checks if someone changed the data the record is open
+		- Include a column lock_version of type integer.  When the record changes, Active Rercord increments lock_version.
+
+		c1 = Client.find(1)
+		c2 = Client.find(1)
+		 
+		c1.first_name = "Michael"
+		c1.save
+		 
+		c2.name = "should fail"
+		c2.save # Raises an ActiveRecord::StaleObjectError
+
+	Pessimistic Locking
+		Uses the mechanism provided by Database.  Get the exclusive lock on the selected rows
+			Item.transaction do
+			  i = Item.lock.first  # Lock the first
+			  i.name = 'Jones'
+			  i.save
 			end
-			Calling:			 
-				User.active.inactive
-				# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
-			Meging with where
-				User.active.where(state: 'finished')
-				# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
-		Applying a default scope
-			To apply a scope in all queries - default_scope
-				class Client < ActiveRecord::Base
-				  default_scope { where("removed_at IS NULL") }
-				end		
-	Using SQL
-		find_by_sql
-			Just put the select inside the command
-			Returns a list of objects
-			Client.find_by_sql("SELECT * FROM clients
-	  					INNER JOIN orders ON clients.id = orders.client_id
-  						ORDER clients.created_at desc")
-  		select_all
-  			Returns a array of hashes
-  			Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
-  		pluck
-  			Returns only the elements required.  Converts the database result in a Ruby Array.
-  			Client.where(active: true).pluck(:id)
-				# SELECT id FROM clients WHERE active = 1
-				# => [1, 2, 3]
-			 
-			Client.distinct.pluck(:role)
-				# SELECT DISTINCT role FROM clients
-				# => ['admin', 'member', 'guest']
-			 
-			Client.pluck(:id, :name)
-				# SELECT clients.id, clients.name FROM clients
-				# => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
-			- Pluck can't be chained.  Has to be the last command
-				Client.pluck(:name).limit(1)
-				# => NoMethodError: undefined method `limit' for #<Array:0x007ff34d3ad6d8>
-				 
-				Client.limit(1).pluck(:name)
-				# => ["David"]
-		ids
-			Pluck all ids of a Table
-			Person.ids
-			# SELECT id FROM people
-			Changing the primary key
-				class Person < ActiveRecord::Base
-				  self.primary_key = "person_id"
-				end
-				Person.ids
-				# SELECT person_id FROM people
-		Existence of a Object
-			exists?			any?	many?
-			Return true or false
-			Client.exists?(1)
-			Client.exists?([1,2,3])
-			Client.where(first_name: 'Ryan').exists?
-	Calculations
-		Count
-			Client.SELECT
-			# count count(*) AS count_all FROM clients
-			Client.where(first_name: 'Ryan').count
-			# SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
-			Client.includes("orders").where(first_name: 'Ryan', orders: {status: 'received'}).count
-			#SELECT count(DISTINCT clients.id) AS count_all FROM clients
-						 LEFT OUTER JOIN orders ON orders.client_id = client.id 
-						 WHERE (clients.first_name = 'Ryan' AND orders.status = 'received')
-			Counts the clients that have age attribute
-			Client(:age).count
-		Average
-			Client.average("orders_count")
-		Minimum
-			Client.minimum("age")
-		Maximum
-			Client.maximum("age")
-		Sum
-			Client.sum("orders_count")
-	EXPLAIN
-		Shows the SQL
-		User.where(id: 1).joins(:posts).explain
+		#OR
+			item = Item.first
+			item.with_lock do
+			  # This block is called within a transaction,
+			  # item is already locked.
+			  item.increment!(:views)
+			end
+		Can pass raw SQL to the lock method, allowing different types of lock
+		Ex for MySQL
+			Item.transaction do
+			  i = Item.lock("LOCK IN SHARE MODE").find(1)
+			  i.increment!(:views)
+			end
+Joining Tables
+	Just specify a SQL
+		Returns the left table even it the right is NULL
+		Client.joins('LEFT OUTER JOIN addresses ON addresses.client_id = clients.id')
+		executes: SELECT clients.* FROM clients LEFT OUTER JOIN addresses ON addresses.client_id = clients.id
+	In the configuration:
+		class Category < ActiveRecord::Base
+		  has_many :posts
+		end
+		 
+		class Post < ActiveRecord::Base
+		  belongs_to :category
+		  has_many :comments
+		  has_many :tags
+		end
+		 
+		class Comment < ActiveRecord::Base
+		  belongs_to :post
+		  has_one :guest
+		end
+		 
+		class Guest < ActiveRecord::Base
+		  belongs_to :comment
+		end
+		 
+		class Tag < ActiveRecord::Base
+		  belongs_to :post
+		end
 
-			
+	Joining a Single Association (INNER)
+		return a Category object for all categories with posts
+		Category.joins(:posts)
+		executes: SELECT categories.* FROM categories INNER JOIN posts ON posts.category_id = categories.id
+	Joining Multiple Associations
+		return all posts that have a category and at least one comment
+		Post.joins(:category, :comments)
+		Executes: SELECT posts.* FROM posts
+			INNER JOIN categories ON posts.category_id = categories.id
+			INNER JOIN comments ON comments.post_id = posts.id
+	Joining Nested Associations (Single Level)
+		return all posts that have a comment made by a guest.
+		Post.joins(comments: :guest)
+		executes: SELECT posts.* FROM posts
+				INNER JOIN comments ON comments.post_id = posts.id
+				INNER JOIN guests ON guests.comment_id = comments.id
+		Joining Nested Associations (Multiple Level)
+			Category.joins(posts: [{comments: :guest}, :tags])
+		executes: SELECT categories.* FROM categories
+		  INNER JOIN posts ON posts.category_id = categories.id
+		  INNER JOIN comments ON comments.post_id = posts.id
+		  INNER JOIN guests ON guests.comment_id = comments.id
+		  INNER JOIN tags ON tags.post_id = posts.id
+	Specifying Conditions on the Joined Tables
+	 	- find all clients who have orders that were created yesterday, again using a BETWEEN SQL expression.
+		time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+		Client.joins(:orders).where('orders.created_at' => time_range)
+		OR
+		time_range = (Time.now.midnight - 1.day)..Time.now.midnight
+		Client.joins(:orders).where(orders: {created_at: time_range})
+Eager / Lazy loading
+	# Includes the address in the select and don't read address in a different select(when it is doing put)
+	clients = Client.includes(:address).limit(10)
+		clients.each do |client|
+			puts client.address.postcode
+	end
+	Two selects intead of 11.
+		SELECT * FROM clients LIMIT 10
+		SELECT addresses.* FROM addresses WHERE (addresses.client_id IN (1,2,3,4,5,6,7,8,9,10))
+	Eager for Multiple associations
+		- This loads all the posts and the associated category and comments for each post.
+		Post.includes(:category, :comments)
+		- This will find the category with id 1 and eager load all of the associated posts, the associated posts' tags and comments, and every comment's guest association.
+			Category.includes(posts: [{comments: :guest}, :tags]).find(1)
+	Specifying Conditions on Eager Loaded Associations
+		Post.includes(:comments).where("comments.visible" => true)
+		Works like inner join
+Scopes
+	Defines common used queries which can be referenced as methods
+	class Post < ActiveRecord::Base
+			scope :published, -> { where(published: true) }
+			#OR
+		def self.published
+		    where(published: true)
+		end
+		# CAN CHAIN ex: using the scope published above
+		scope :published_and_commented, -> { published.where("comments_count > 0") }
+
+		#With arguments
+		scope :created_before, ->(time) { where("created_at < ?", time) }
+	end
+	Call this ways
+		Post.published # => [published posts]
+		#OR
+		category = Category.first
+		category.posts.published # => [published posts belonging to this category]
+	
+		Post.created_before(Time.zone.now)
+
+	Merge scopes
+		class User < ActiveRecord::Base
+		  scope :active, -> { where state: 'active' }
+		  scope :inactive, -> { where state: 'inactive' }
+		end
+		Calling:			 
+			User.active.inactive
+			# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
+		Meging with where
+			User.active.where(state: 'finished')
+			# => SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
+	Applying a default scope
+		To apply a scope in all queries - default_scope
+			class Client < ActiveRecord::Base
+			  default_scope { where("removed_at IS NULL") }
+			end		
+Using SQL
+	find_by_sql
+		Just put the select inside the command
+		Returns a list of objects
+		Client.find_by_sql("SELECT * FROM clients
+  					INNER JOIN orders ON clients.id = orders.client_id
+						ORDER clients.created_at desc")
+		select_all
+			Returns a array of hashes
+			Client.connection.select_all("SELECT * FROM clients WHERE id = '1'")
+		pluck
+			Returns only the elements required.  Converts the database result in a Ruby Array.
+			Client.where(active: true).pluck(:id)
+			# SELECT id FROM clients WHERE active = 1
+			# => [1, 2, 3]
+		 
+		Client.distinct.pluck(:role)
+			# SELECT DISTINCT role FROM clients
+			# => ['admin', 'member', 'guest']
+		 
+		Client.pluck(:id, :name)
+			# SELECT clients.id, clients.name FROM clients
+			# => [[1, 'David'], [2, 'Jeremy'], [3, 'Jose']]
+		- Pluck can't be chained.  Has to be the last command
+			Client.pluck(:name).limit(1)
+			# => NoMethodError: undefined method `limit' for #<Array:0x007ff34d3ad6d8>
+			 
+			Client.limit(1).pluck(:name)
+			# => ["David"]
+	ids
+		Pluck all ids of a Table
+		Person.ids
+		# SELECT id FROM people
+		Changing the primary key
+			class Person < ActiveRecord::Base
+			  self.primary_key = "person_id"
+			end
+			Person.ids
+			# SELECT person_id FROM people
+	Existence of a Object
+		exists?			any?	many?
+		Return true or false
+		Client.exists?(1)
+		Client.exists?([1,2,3])
+		Client.where(first_name: 'Ryan').exists?
+Calculations
+	Count
+		Client.SELECT
+		# count count(*) AS count_all FROM clients
+		Client.where(first_name: 'Ryan').count
+		# SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
+		Client.includes("orders").where(first_name: 'Ryan', orders: {status: 'received'}).count
+		#SELECT count(DISTINCT clients.id) AS count_all FROM clients
+					 LEFT OUTER JOIN orders ON orders.client_id = client.id 
+					 WHERE (clients.first_name = 'Ryan' AND orders.status = 'received')
+		Counts the clients that have age attribute
+		Client(:age).count
+	Average
+		Client.average("orders_count")
+	Minimum
+		Client.minimum("age")
+	Maximum
+		Client.maximum("age")
+	Sum
+		Client.sum("orders_count")
+EXPLAIN
+	Shows the SQL
+	User.where(id: 1).joins(:posts).explain
+
+		
 
