@@ -1441,12 +1441,6 @@ Active Record Associations
 
 
 
-
-
-
-
-
-
 Active Record Query Interface
 Ex:
 	class Client < ActiveRecord::Base
@@ -1829,4 +1823,128 @@ EXPLAIN
 	User.where(id: 1).joins(:posts).explain
 
 		
+Layout and Rendering
+	Creating reponse
+		Communication between View and Controller
+		3 Ways to create HTTP response
+			Call "render" to create a full response to send back to the browser
+			Call "redirect_to" to send an HTTP redirect status code to the browser
+			Call "head" to create a response consisting solely of HTTP headers to send back to the browser
+
+		Convention over configuration
+			By default, controllers automatically render views  with names of the route.
+			Ex:
+				In route.rb:
+					resources :books
+				class BooksController < ApplicationController
+				  def index
+				    @books = Book.all
+				  end
+				end
+				- Try to render  app/views/books/index.html.erb which is the same name as the methods(index)
+		Using render
+			It is possible to render text, JSON or XML.  Can specify content type or HTTP status of the rendered response.
+
+			If use render_to_string, just returns a string instead to send to the response to browser.
+
+			Rendering nothing
+				render nothing: true
+		Rendering a action's view
+			render "edit"
+			#OR
+			render :edit
+		Render template
+			render template: "books/edit"
+			render template: "books/edit.html.erb"
+		To render a specific file
+			render file: "/u/apps/warehouse_app/current/app/views/products/show"
+		Render inline
+			render inline: "<% products.each do |p| %><p><%= p.name %></p><% end %>"
+		Render text
+			render text: "OK"
+		Render JSON
+			render json: @product
+		Render XML	
+			render xml: @product
+		Render JavaScript
+			render js: "alert('Hello Rails');"
+		Options
+			:content_type
+				- text/html, application/json, application/xml 
+				ex: render file: filename, content_type: "application/rss"
+			:layout
+				render layout: "special_layout"
+				render layout: false
+			:location
+				To set HTTP Location header
+				render xml: photo, location: photo_url(photo)
+			:status
+				render status: 500
+				#OR
+				render status: :forbidden
+		Fiding Layouts
+			First Rails try to set the same layout as the Controller, if it doesn't find, look for the layouts/application.html.erb.
+			It is possible to specify a layout.
+			ex:
+				class ProductsController < ApplicationController
+				  layout "inventory"
+				  #...
+				end
+			To assign a specific layout for the entire application, use layout in ApplicationController
+			ex:
+				class ApplicationController < ActionController::Base
+				  layout "main"
+				  #...
+				end
+		Specifying a layout in runtime
+			class ProductsController < ApplicationController
+			  layout :products_layout
+			 
+			  def show
+			    @product = Product.find(params[:id])
+			  end
+			 
+			  private
+			    def products_layout
+			      @current_user.special? ? "special" : "products"
+			    end
+			 
+			end
+			Or with inline method
+			class ProductsController < ApplicationController
+			  layout Proc.new { |controller| controller.request.xhr? ? "popup" : "application" }
+			end
+		Conditionanl Layouts
+			class ProductsController < ApplicationController
+			  layout "product", except: [:index, :rss]
+			end
+	Using redirect_to
+		Tells the browser to send a new request from a different URL.
+		Ex:
+			redirect_to photos_url  #Redirect to index of photos
+		Send back to the previous page
+			redirect_to :back
+		Differences
+			render action: "index"  	# Doesn't run the target code
+			redirect_to action: :index   #Browser redirect to the action
+				Drawback is that it sends a 302 redirect response to the browser 
+	Head only response
+		ex:
+			head :bad_request
+
+			head :created, location: photo_path(@photo)
+	Structuring Layout
+		Asset tags : Asset tag helpers provide methods for generating HTML that link views to feeds, JavaScript, stylesheets, images, videos and audios. There are six asset tag helpers available in Rails:
+			auto_discovery_link_tag
+			javascript_include_tag
+			stylesheet_link_tag
+			image_tag
+			video_tag
+			audio_tag
+You can use these t
+		yield and content_for
+		Partials
+
+
+
 
