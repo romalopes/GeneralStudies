@@ -1279,7 +1279,7 @@ Active Record Associations
 				                        foreign_key: "patron_id"
 				end
 			:inverse_of
-				Specify the inverse of association
+				Specify the name of the inverse association
 				Ex:
 					class Customer < ActiveRecord::Base
 					  has_many :orders, inverse_of: :customer
@@ -2043,11 +2043,471 @@ Structuring Layout
 
 
 Action View Form Helpers
+Most Simple
+	use xxx_tag
+		<%= form_tag("/search", method: "get") do %>
+		  <%= label_tag(:q, "Search for:") %>
+		  <%= text_field_tag(:q) %>
+		  <%= submit_tag("Search") %>
+		<% end %>
+	Passing controller and action
+			form_tag(controller: "people", action: "search", method: "get", class: "nifty_form")
+			# => '<form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">'
+
+			OR
+
+			form_tag({controller: "people", action: "search"}, method: "get", class: "nifty_form")
+			# => '<form accept-charset="UTF-8" action="/people/search" method="get" class="nifty_form">'
+Different helpers
+	Checkboxs
+		<%= check_box_tag(:pet_cat) %>
+		<%= label_tag(:pet_cat, "I own a cat") %>
+		Result:
+			<input id="pet_cat" name="pet_cat" type="checkbox" value="1" />
+			<label for="pet_cat">I own a cat</label>
+	RadioBox
+		<%= radio_button_tag(:age, "child") %>
+		<%= label_tag(:age_child, "I am younger than 21") %>
+		Result:
+			<input id="age_child" name="age" type="radio" value="child" />
+			<label for="age_child">I am younger than 21</label>
+	Others
+		<%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
+		<%= password_field_tag(:password) %>
+		<%= hidden_field_tag(:parent_id, "5") %>
+		<%= search_field(:user, :name) %>
+		<%= telephone_field(:user, :phone) %>
+		<%= date_field(:user, :born_on) %>
+		<%= datetime_field(:user, :meeting_time) %>
+		<%= datetime_local_field(:user, :graduation_day) %>
+		<%= month_field(:user, :birthday_month) %>
+		<%= week_field(:user, :birthday_week) %>
+		<%= url_field(:user, :homepage) %>
+		<%= email_field(:user, :address) %>
+		<%= color_field(:user, :favorite_color) %>
+		<%= time_field(:task, :started_at) %>
+Dealing with Model Objects
+	These kind of helpers does not use the sufix "_tag"
+	Ex: <%= text_field(:person, :name) %>
+	Result: <input id="person_name" name="person[name]" type="text" value="Henry"/>
+
+	Binding a Form to an Object
+		In controller
+			def new
+			  @article = Article.new
+			end
+		In view
+			<%= form_for @article, url: {action: "create"}, html: {class: "nifty_form"} do |f| %>
+			  <%= f.text_field :title %>
+			  <%= f.text_area :body, size: "60x12" %>
+			  <%= f.submit "Create" %>
+			<% end %>
+	If I have an association it is possible to define a form to the associated object
+		<%= form_for @person, url: {action: "create"} do |person_form| %>
+		  <%= person_form.text_field :name %>
+		  <%= fields_for @person.contact_detail do |contact_details_form| %>
+		    <%= contact_details_form.text_field :phone_number %>
+		  <% end %>
+		<% end %>
+		Result:
+			<form accept-charset="UTF-8" action="/people/create" class="new_person" id="new_person" method="post">
+			  <input id="person_name" name="person[name]" type="text" />
+			  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" type="text" />
+			</form>
+How do forms with PATCH, PUT, or DELETE methods work?
+	Some browsers don't have PATCH, then Rails emulate this method using a hidden parameter in a POST search
+
+	form_tag(search_path, method: "patch")
+	results:
+		<form accept-charset="UTF-8" action="/search" method="post">
+					<div style="margin:0;padding:0">
+				<input name="_method" type="hidden" value="patch" />
+				<input name="utf8" type="hidden" value="&#x2713;" />
+			    <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
+			  </div>
+			  ...
+Select and option
+	The simplest way
+		<%= select_tag(:city_id, '<option value="1">Lisbon</option>...') %>
+		ex:
+			<%= options_for_select([['Lisbon', 1], ['Madrid', 2], ...]) %>
+		Together
+			<%= select_tag(:city_id, options_for_select(...)) %>
+
+		ex:
+			<%= options_for_select([['Lisbon', 1, {'data-size' => '2.8 million'}], ['Madrid', 2, {'data-size' => '3.2 million'}]], 2) %>
+			 
+			output:
+			 
+			<option value="1" data-size="2.8 million">Lisbon</option>
+			<option value="2" selected="selected" data-size="3.2 million">Madrid</option>
+	Select dealing with model
+		# controller:
+			@person = Person.new(city_id: 2)
+		# view:
+			<%= select(:person, :city_id, [['Lisbon', 1], ['Madrid', 2], ...]) %>
+			#OR
+			# select on a form builder
+			<%= person.select(:city_id, ...) %>
+	Options from a Array or Collection
+		<% cities_array = City.all.map { |city| [city.name, city.id] } %>
+		<%= options_for_select(cities_array) %>
+
+		#Better
+		<%= options_from_collection_for_select(City.all, :id, :name) %>
+
+		All together
+			<%= collection_select(:person, :city_id, City.all, :id, :name) %>
+Date and Time
+	Barebones Helpers
+		select_date, select_time and select_datetime
+		<%= select_date Date.today, prefix: :start_date %>
+
+	Equivalent Model Object Helper
+		date_select, time_select and datetime_select
+		<%= date_select :person, :birth_date %>
+		#OR
+		<%= person.date_select :birth_date %>
+Uploading Files
+	The rendered form's encoding MUST be set to "multipart/form-data"
+		With form_for it is done automaticaly
+		With form_tag, you must set it yourself
+		ex:
+		<%= form_for @person do |f| %>
+		  <%= f.file_field :picture %> -----> params[:picture] 
+		<% end %>
+
+		<%= form_tag({action: :upload}, multipart: true) do %>
+		  <%= file_field_tag 'picture' %> ---->params[:person][:picture]
+		<% end %>
+	Saving
+		Picture is save in #{Rails.root}/public/uploads
+		def upload
+		  uploaded_io = params[:person][:picture]
+		  File.open(Rails.root.join('public', 'uploads', uploaded_io.original_filename), 'wb') do |file|
+		  	file.write(uploaded_io.read)
+		  end
+		end
+	With ajax
+		It is more complex than other forms.
+Parameters and conventions
+	HTML doesn't have any structured data, just get pairs name-value 
+	Basic Structure
+			#Input
+				<input id="person_name" name="person[name]" type="text" value="Henry"/>
+			#Params
+				{'person' => {'name' => 'Henry'}}
+
+			#Input
+				<input id="person_address_city" name="person[address][city]" type="text" value="New York"/>
+			#Params
+				{'person' => {'address' => {'city' => 'New York'}}}
+	Using Form Helper
+		<%= form_for @person do |f| %>
+		  <%= f.text_field :name %>
+		  <% @person.addresses.each do |address| %>
+		    <%= f.fields_for address, index: address do |address_form|%>
+		      <%= address_form.text_field :city %>
+		    <% end %>
+		  <% end %>
+		<% end %>
+			#Params
+				{'person' => {'name' => 'Bob', 'address' => {'23' => {'city' => 'Paris'}, '45' => {'city' => 'London'}}}}
+	Form to external resources
+		# It is possible to pass an external token to access the external resource
+		<%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
+	  Form contents
+	<% end %>
+	# OR
+	authenticity_token: false
+Complex forms
+	#uses accepts_nested_attributes_for
+		class Person < ActiveRecord::Base
+		  has_many :addresses
+		  accepts_nested_attributes_for :addresses
+		end
+		 
+		class Address < ActiveRecord::Base
+		  belongs_to :person
+		end
+		This creates an addresses_attributes= method
+	And creates a form with a Person and its associates address
+		<%= form_for @person do |f| %>
+		  Addresses:
+		  <ul>
+		    <%= f.fields_for :addresses do |addresses_form| %>
+		      <li>
+		        <%= addresses_form.label :kind %>
+		        <%= addresses_form.text_field :kind %>
+		 
+		        <%= addresses_form.label :street %>
+		        <%= addresses_form.text_field :street %>
+		        ...
+		      </li>
+		    <% end %>
+			  </ul>
+		<% end %>
+
+
 
 
 
 
 Action Controller Overview
+	Controller is the C from MVC
+	Controller Name
+		Preferable in plural: ClientsController
+	Methods and Actions
+		Normal ruby class the inherits from ApplicationController
+		Ex  /clients/new:
+			class ClientsController < ApplicationController
+			  def new
+			  	@client = Client.new
+			  end
+			end	
+	Parameters
+		Rails doesn't make any distinction between GET or POST parameters
+		# In the example:
+		def create
+		    @client = Client.new(params[:client])
+		    if @client.save
+		      redirect_to @client
+		    else
+		      # This line overrides the default rendering behavior, which
+		      # would have been to render the "create" view.
+		      render "new"
+		    end
+		end
+		# Values came from
+			<form accept-charset="UTF-8" action="/clients" method="post">
+			  <input type="text" name="client[name]" value="Acme" />
+			  <input type="text" name="client[phone]" value="12345" />
+			  <input type="text" name="client[address][postcode]" value="12345" />
+			  <input type="text" name="client[address][city]" value="Carrot City" />
+			</form>
+		JSON parameters
+			If working with JSON, Rails convert automatically the parameters in parms hash.
+	Routing parameters
+		Hash params always contains :controller and :action keys
+	Strong parameters
+		Action Controller parameters can be used in Active Model mass assigments only after they pass through another method(whitelisted).  The params will be chosen to be exposed.
+		Ex:
+			class PeopleController < ActionController::Base
+				def update
+				    person = current_account.people.find(params[:id])
+				    person.update_attributes!(person_params)
+    				redirect_to person
+  				end
+ 				private
+			    def person_params
+			      params.require(:person).permit(:name, :age)
+			    end
+			end
+	Session
+		Kinds of session:
+			ActionDispatch::Session::CookieStore - Stores everything on the client.
+			ActionDispatch::Session::CacheStore - Stores the data in the Rails cache.
+			ActionDispatch::Session::ActiveRecordStore - Stores the data in a database using Active Record. (require activerecord-session_store gem).
+			ActionDispatch::Session::MemCacheStore - Stores the data in a memcached cluster 
+
+		If you need a different session storage mechanism, you can change it in the config/initializers/session_store.rb file.
+		ex:
+			RomaMoneyRails::Application.config.session_store :cookie_store, key: '_romaMoneyRails_session', domain: ".example.com"
+			#domain is optional
+		CookieStore used for signing the session data
+			Can be changed in  config/initializers/secret_token.rb:
+			EX, create a random value:
+				require 'securerandom'
+
+				def secure_token
+				  token_file = Rails.root.join('.secret')
+				  if File.exist?(token_file)
+				    # Use the existing token.
+				    File.read(token_file).chomp
+				  else
+				    # Generate a new token and store it in token_file.
+				    token = SecureRandom.hex(64)
+				    File.write(token_file, token)
+				    token
+				  end
+				end
+				RomaMoneyRails::Application.config.secret_key_base = secure_token
+		Accessing Session
+			def current_user
+			    @_current_user ||= session[:current_user_id] &&
+			      User.find_by(id: session[:current_user_id])
+			end
+
+			def create
+			    if user = User.authenticate(params[:username], params[:password])
+			      # Save the user ID in the session so it can be used in
+			      # subsequent requests
+			      session[:current_user_id] = user.id
+			      redirect_to root_url
+			    end
+			end			
+
+			To reset the intire session:
+				reset_session
+		Flash
+			Special part of session that is cleared in each request. It will available only in the next request.	
+			Ex:
+				flash[:notice] = "You have successfully logged out."
+	Cookie
+		To store cookie is similar to Session
+		# Remember the commenter's name.
+        cookies[:commenter_name] = @comment.author
+    Render xml and JSON data
+
+    	class UsersController < ApplicationController
+		  def index
+		    @users = User.all
+		    respond_to do |format|
+		      format.html # index.html.erb
+		      format.xml  { render xml: @users} # automatically invokes @users.to_xml
+		      format.json { render json: @users}
+		    end
+		  end
+		end
+	Render JSON with JavaScript
+		 @user = User.first
+		 respond_to do |format|
+      		format.html { redirect_to root_url }
+      		format.js 
+         end
+         Should have a file js.erb with the same name of the action
+    Filter
+    	Runs before, after or "arround" the controller action
+    	There are different ways to access Filters, but these are the most known ones
+    	before_action
+	    	Ex:
+	    		class ApplicationController < ActionController::Base
+				  before_action :require_login
+				   private
+	 
+				  def require_login
+				    unless logged_in?
+				      flash[:error] = "You must be logged in to access this section"
+				      redirect_to new_login_url # halts request cycle
+				    end
+				  end
+				end
+
+				- this will be run on every controller 
+			Ex of before_action for user_controller.rb
+				before_action :signed_in_user,
+	                only: [:index, :edit, :update, :destroy, :change_to_this, :change_account, :change_account_ajax]
+			  	before_action :correct_user,   only: [:edit, :update]
+			   	before_action :admin_user,     only: :destroy
+
+			Skiping before for some methods
+				class LoginsController < ApplicationController
+				  skip_before_action :require_login, only: [:new, :create]
+				end
+		after_action
+			After is similar to before.  
+			Has access to response.
+			Can't stop the action
+		arround_action
+			Run the associated actions by yielding 
+	Request Forgery Protection
+		First step to protect destructive actions from forgery it prohibit GET requests(REST already does this)
+	Request and Response objects
+		Request Object
+			query_parameters - sent as part of the query string
+			request_parameters - sent as part of the post body
+			path_parameters - parameters that were recognized by the routing as being part of the path leading to this particular controller and action.
+		Response Object
+			response.headers["Content-Type"] = "application/pdf"
+	HTTP Authentications
+		Basic Authentication
+			Very simple
+			class AdminsController < ApplicationController
+			  http_basic_authenticate_with name: "humbaba", password: "5baa61e4"
+			end
+		Digest Authentication
+		 	only requires using one method, authenticate_or_request_with_http_digest
+	Streaming and File Downloads
+		send_data
+			To stream data to the client, use send_data:
+			Ex:
+				#Generate a stream and send it
+				require "prawn"
+				class ClientsController < ApplicationController
+				  # Generates a PDF document with information on the client and
+				  # returns it. The user will get the PDF as a file download.
+				  def download_pdf
+				    client = Client.find(params[:id])
+				    send_data generate_pdf(client),
+				              filename: "#{client.name}.pdf",
+				              type: "application/pdf"
+				  end
+				 
+				  private
+				 
+				  def generate_pdf(client)
+				    Prawn::Document.new do
+				      text client.name, align: :center
+				      text "Address: #{client.address}"
+				      text "Email: #{client.email}"
+				    end.render
+				  end
+				end
+		send_file
+			To send a file
+			class ClientsController < ApplicationController
+			  # Stream a file that has already been generated and stored on disk.
+			  def download_pdf
+			    client = Client.find(params[:id])
+			    send_file("#{Rails.root}/files/clients/#{client.id}.pdf",
+			              filename: "#{client.name}.pdf",
+			              type: "application/pdf") #default=application/octet-stream
+			  end
+			end
+
+			It read 4kb at time avoid loading the entire file to memory at once.  It can be configure.
+		RESTFUL download
+			First include in config/initializers/mime_types.rb:
+				Mime::Type.register "application/pdf", :pdf
+
+			class ClientsController < ApplicationController
+			  # The user can request to receive this resource as HTML or PDF.
+			  def show
+			    @client = Client.find(params[:id])
+			 
+			    respond_to do |format|
+			      format.html
+			      format.pdf { render pdf: generate_pdf(@client) }
+			    end
+			  end
+			end
+	Log Filtering
+		Uses a log file
+	Rescue
+		Useful to send a specific exception to a page
+		ex:
+		class ApplicationController < ActionController::Base
+		  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
+		 
+		  private
+		 
+		  def record_not_found
+		    render text: "404 Not Found", status: 404
+		  end
+		end
+
+	Force ssl
+		In config/environments/production.rb
+			# Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+    		config.force_ssl = true
+    	Of for a specific action and controller
+	    	class DinnerController
+			  force_ssl only: :cheeseburger
+			  # or
+			  force_ssl except: :cheeseburger
+			end
+
+
 
 
 

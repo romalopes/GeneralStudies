@@ -30,7 +30,6 @@ $ git commit -m "Added tests for new one functionality"
 - go to github.commit
 	- see if the branched was pulled
 		- click in Pull Request		
-		
 
 
 - GitHub Commands
@@ -40,5 +39,15 @@ $ git commit -m "Added tests for new one functionality"
 	git status -a / show all files that are modified or added
 	git remote add origin git@github.com:USER/REPO.git
 	git push -u origin master
-	
-		
+			
+
+Heroku
+	$ heroku apps:create Name
+	$ git add .
+	$ git commit -a -m "heroku"
+	$ git push heroku
+	$ heroku pg:reset DATABASE
+	$ heroku run rake db:migrate
+	$ heroku run rake db:populate
+	$ heroku restart
+	$ heroku open
