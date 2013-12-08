@@ -2512,3 +2512,120 @@ Action Controller Overview
 
 
 Rails Routing from the Outside In
+
+
+
+Rails Routing from the Outside In
+ 
+	The Purpose of the Rails Router
+        Simple example:
+                                GET /patients/17
+                    Route
+                                get '/patients/:id', to: 'patients#show'
+
+        Or
+                    get '/patients/:id', to: 'patients#show', as: 'patient'
+                    and your application contains this code in the controller:
+                                @patient = Patient.find(17)
+                    and this in the corresponding view:
+                                <%= link_to 'Patient Record', patient_path(@patient) %>
+                    Route will generate 
+                                /patients/17
+        CRUD, Verbs, and Actions
+            If declare
+                resources :photos
+                If creates 7 routes
+                    HTTP    	Verb 			Path
+                    GET        /photos     		index   
+                    GET        /photos/new      new
+                    POST   		/photos 		create  
+                    GET        /photos/:id 		show   
+                    GET        /photos/:id/edit edit      
+                    PATCH/PUT  /photos/:id      update 
+                    DELETE     /photos/:id      destroy
+            Singular resources
+                To call 
+                	/profile
+                route
+                	get 'profile', to: 'users#show'
+ 
+	A singular resourceful route generates these helpers:
+		new_photo_path returns / photo /new
+		edit_ photo _path returns / photo /edit
+		photo _path returns / photo
+        Controller Namespaces and routing
+            It is possible to organize groups of controllers under a namespace
+            EX:
+            namespace : admin do
+                            resources :posts, :comments
+            end
+            It will create routes for post and comments .  For Admin::PostController
+	            GET /admin/posts          	admin_post_path
+	            GET /admin/posts/new 		new_admin_post_path
+	            POST /admin/posts/:id       admin_post_path(:id)
+	            etc
+            Uses Admin::PostController without the prefix /admin, just declares:
+            	scope module: ‘admin’ do
+                	resources :posts, :comments    
+                end
+				OR
+                resources :posts, module:’admin’
+ 
+            To use /admin/post without  admin in path.
+                Scope ‘/admin’ do
+                                Resources :posts, :comments
+                End
+            Resources :posts, path: ‘/admin/posts’
+                GET /admin/posts                           posts_path
+                GET /admin/posts/new                                new_post_path
+                Nested Resources
+	when there are resources that are children of others. 
+		Models:
+			class Magazine < ActiveRecord::Base
+  				has_many
+					:ads
+				end
+ 			end
+			class Ad < ActiveRecord::Base
+  				belongs_to :magazine
+			end
+			Resources:
+				resources :magazines do
+  					resources :ads
+				end
+			/magazines/:magazine_id/ads
+			/magazines/:magazine_id/ads/new
+			/magazines/:magazine_id/ads
+			The url: edit_magazine_ad_path
+			It is possible to nest 2 levels
+    
+		resources :publishers do
+		  resources :magazines do
+		    resources :photos
+		  end
+		end
+		Calling:
+			/publishers/1/magazines/2/photos/3
+	Paths and URLs From Objects
+		resources :magazines do
+		  resources :ads
+		end
+		You can pass instances of magazines and ads
+			<%= link_to 'Ad details', magazine_ad_path(@magazine, @ad) %>
+		Or
+			<%= link_to 'Ad details', url_for([@magazine, @ad]) %>
+			Or
+			<%= link_to 'Ad details', [@magazine, @ad] %>
+			Rails will se magazines and ads and create the path.
+		To call Edit
+		<%= link_to 'Edit Ad', [:edit, @magazine, @ad] %>
+	Adding More RESTful Actions
+		Add Member Routes
+			resources :photos do
+			  member do
+			    get 'preview'
+			  end
+			end
+			Provides:	
+			GET 	/photos/1/preview
+			and preview_photo_url and preview_photo_path helpers
