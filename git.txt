@@ -39,6 +39,8 @@ $ git commit -m "Added tests for new one functionality"
 	git status -a / show all files that are modified or added
 	git remote add origin git@github.com:USER/REPO.git
 	git push -u origin master
+	# Remove or Delete remote
+	git remote rm destination
 			
 
 Heroku
