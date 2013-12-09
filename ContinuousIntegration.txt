@@ -49,7 +49,33 @@
 	- 
 			
 			
-		
+- JBehave
+	Parses the scenarios from story files, maps them to java code, runs them via JUnit tests, and generates reports
+	User Stories
+		Series of acceptance criteria
+		Called scenarios
+		Each scenario has GIVENS, EVENTS and OUTCOMES
+		Used in AGILE process
+	Behaviour
+		Expressed as a test method
+		It defines what the application should/shoun't do
+	Story Structure
+		Narrative
+			As a [some_role_here]
+			I want[some_feature_here]
+			So that[behefit/valaue_of_the_feature_here]
+		Scenario(this is Acceptance criteria)
+			Given [some_initial_condition]
+			When [event(s)_occurs]
+			Then[ensure_some_outcome]
+	Five Steps 
+		Write a Story
+		Map Steps to Java
+		Configure Stories
+		Run Stories
+		View Reports
+
+
 		
 - Sonarqube (http://www.sonarqube.org/)
 	It is an open platform to manage code quality and continuous inspection that covers 7 axes of code quality;
