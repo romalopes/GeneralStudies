@@ -41,7 +41,9 @@ $ git commit -m "Added tests for new one functionality"
 	git push -u origin master
 	# Remove or Delete remote
 	git remote rm destination
-			
+	# Rename app
+	heroku apps:rename romamoneygrails
+
 
 Heroku
 	$ heroku apps:create Name
