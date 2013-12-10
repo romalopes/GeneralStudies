@@ -2756,6 +2756,11 @@ Action Mailer Basics
 		</html>
 		4.1 It is possible to create a text(non html) file too. welcome_email.text.erb
 	With method webcome_email, rails will automatically render both html and text files.
+	5. In method create of UsersController
+	      if @user.save
+	        # Tell the UserMailer to send a welcome Email after save
+	        UserMailer.welcome_email(@user).deliver
+
 
 
 
