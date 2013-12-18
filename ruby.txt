@@ -22,14 +22,14 @@ Ruby
 					end 
 				end
 				a = Test.new
-				a.hello()
+				a.hello(1,2)
 				BEGIN {
 					puts "BEGIN executes before everything"
 				}
 				END {
    					puts "END executes at the ende of the program"
 				}
-				-call: ruby hi.rb 
+				-call: $ ruby hi.rb 
 	Types
 		Ruby has: 
 			array = [ 1, "aaa"]
