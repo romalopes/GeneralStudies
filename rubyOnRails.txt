@@ -2854,25 +2854,5 @@ How to Create GEMS
 
 
 
-
-Pessoal, daqui do outro lado do mundo tenho ouvido um choro baixinho, magoááádo de alguns amigos(???) que estão esperando segunda pra soltar a raiva, então vou me pronunciar logo.
-
-1. Não temos nada a ver com a cagada que outros cometem.  Já estamos nos preparando para jogar a segunda divisão.  Mas se alguém colocou um jogador em campo ilegalmente, então a culpa não é nossa.
-
-2. Corinthians caiu, Vasco caiu(e vai cair), Botafogo caiu, Palmeiras caiu, Atleticos caíram, Grêmio caiu.
-   Se só o Flu não cai por causa injusta é porque somos mais fortes que todos eles juntos?
-   Quem acredita em virada de mesa, acha que o seu time também pode virar ou que só um é beneficiado.
-
-3. Sinceramente? Eu preferia que o Fluminense jogasse a segundona.  O que acham, jogarmos ao mesmo tempo a primeira e a segunda?
-
-4. Se tiver sido armado, como bom português, a Portuguesa pode ter feito isso pra beneficiar o vasco e não o Flu.  Observem que quando o cara entrou(32m segundo tempo), o vasco estava prestes a empatar o jogo.  Só que depois perdeu de 5 e o Flu virou.
-
-5. Se falam para pagarmos a Série B, lembrem que tem um projeto de lei tramitando no congresso que vai amenizar as dívidas dos Clubes.  Resultado, nossas dívidas serão perdoadas.  :-)
-
-6. Ver mulambo, português e até botafoguense(lembra do caso exatamente igual do Sandro Hirochi?) querendo mudar a regra em nome da dignidade é até engraçado.  Se fosse assim, nas últimas rodadas, nós escalaríamos o Conca e o Thiago Silva e ficaria por isso mesmo.  Não é assim, regra é pra ser cumprida.
-
-7. O Resto é choro de quem queria zoar e acaba vendo que pode cair na pegadinha do malandro.  Rááá.  Ié Ié...  Glu Glu.  Bilu Teteia.
-   Calma gente.  Afinal, isso é só futebol, não tem importância.  
-
-
-#OChoroEhLivre.  Mas se tivermos que jogar na segunda divisão, jogaremos sem dor nem raiva.  Isso é só futebol, não merece essa mágoa toda.
+CarrierWave
+	
