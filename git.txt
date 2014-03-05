@@ -8,6 +8,7 @@ OR
 $ git clone https://github.com/romalopes/APPLICATION_NAME.git  //When the project already exists
 
 $ git add .
+
 OR
 $ git add file1 file2 file3
 $ git commit -m "Initial commit"
